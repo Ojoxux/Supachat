@@ -1,13 +1,12 @@
 import 'package:flutter/material.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
+import 'package:flutter_and_supabase_chat_app/pages/register_page.dart';
+import 'package:flutter_and_supabase_chat_app/env.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
 
-  await Supabase.initialize(
-    url: const String.fromEnvironment('SUPABASE_URL'),
-    anonKey: const String.fromEnvironment('SUPABASE_ANON_KEY'),
-  );
+  await Supabase.initialize(url: Env.supabaseUrl, anonKey: Env.supabaseAnonKey);
   runApp(const MyApp());
 }
 
@@ -17,6 +16,10 @@ class MyApp extends StatelessWidget {
   // This widget is the root of your application.
   @override
   Widget build(BuildContext context) {
-    return MaterialApp(title: 'Supachat', home: const Scaffold());
+    return MaterialApp(
+      debugShowCheckedModeBanner: false,
+      title: 'Supachat',
+      home: const RegisterPage(),
+    );
   }
 }
