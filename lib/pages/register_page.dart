@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_and_supabase_chat_app/constants.dart';
+import 'package:flutter_and_supabase_chat_app/pages/chat_page.dart';
 import 'package:flutter_and_supabase_chat_app/pages/login_page.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 
@@ -36,9 +37,11 @@ class _RegisterPageState extends State<RegisterPage> {
         password: password,
         data: {'username': username},
       );
-      // TODO: チャットページ実装後に下記コードを追加
-      // Navigator.of(context)
-      //     .pushAndRemoveUntil(ChatPage.route(), (route) => false);
+      if (mounted) {
+        Navigator.of(
+          context,
+        ).pushAndRemoveUntil(ChatPage.route(), (route) => false);
+      }
     } on AuthException catch (error) {
       if (mounted) context.showErrorSnackBar(message: error.message);
     } catch (error) {

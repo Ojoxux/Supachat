@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_and_supabase_chat_app/constants.dart';
+import 'package:flutter_and_supabase_chat_app/pages/chat_page.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 
 class LoginPage extends StatefulWidget {
@@ -27,10 +28,13 @@ class LoginPageState extends State<LoginPage> {
         email: _emailController.text,
         password: _passwordController.text,
       );
-      // TODO: チャットページ実装後に下記コードを追加
+
       // ログイン後にチャットページに飛ぶ
-      // Navigator.of(context)
-      //     .pushAndRemoveUntil(ChatPage.route(), (route) => false);
+      if (mounted) {
+        Navigator.of(
+          context,
+        ).pushAndRemoveUntil(ChatPage.route(), (route) => false);
+      }
     } on AuthException catch (error) {
       if (mounted) context.showErrorSnackBar(message: error.message);
     } catch (_) {
