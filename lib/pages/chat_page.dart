@@ -1,9 +1,11 @@
 import 'dart:async';
 
 import 'package:flutter/material.dart';
+import 'package:timeago/timeago.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 
 import 'package:flutter_and_supabase_chat_app/model/message.dart';
+import 'package:flutter_and_supabase_chat_app/model/profile.dart';
 import 'package:flutter_and_supabase_chat_app/constants.dart';
 import 'package:flutter_and_supabase_chat_app/pages/register_page.dart';
 
@@ -25,20 +27,55 @@ class _ChatPageState extends State<ChatPage> {
   /// メッセージをロードするためのストリーム
   late final Stream<List<Message>> _messagesStream;
 
+  /// プロフィール情報をメモリー内にキャッシュしておくための変数
+  final Map<String, Profile> _profileCache = {};
+
+  /// メッセージのサブスクリプション
+  late final StreamSubscription<List<Message>> _messagesSubscription;
+
   @override
   void initState() {
     final myUserId = supabase.auth.currentUser!.id;
     _messagesStream = supabase
         .from('messages')
         .stream(primaryKey: ['id'])
-        .order('created_at') // 送信日時が新しいものが先に来るようにソート
+        .order('created_at')
         .map(
           (maps) =>
               maps
                   .map((map) => Message.fromMap(map: map, myUserId: myUserId))
                   .toList(),
         );
+    _messagesSubscription = _messagesStream.listen((messages) {
+      for (final message in messages) {
+        _loadProfileCache(message.profileId);
+      }
+    });
     super.initState();
+  }
+
+  @override
+  void dispose() {
+    // きちんとcancelしてメモリリークを防ぐ
+    _messagesSubscription.cancel();
+    super.dispose();
+  }
+
+  /// 特定のユーザーのプロフィール情報をロードしてキャッシュする
+  Future<void> _loadProfileCache(String profileId) async {
+    if (_profileCache[profileId] != null) {
+      return;
+    }
+    final data =
+        await supabase
+            .from('profiles')
+            .select('*')
+            .eq('id', profileId)
+            .single();
+    final profile = Profile.fromMap(data);
+    setState(() {
+      _profileCache[profileId] = profile;
+    });
   }
 
   @override
@@ -77,7 +114,10 @@ class _ChatPageState extends State<ChatPage> {
                             itemCount: messages.length,
                             itemBuilder: (context, index) {
                               final message = messages[index];
-                              return Text(message.content);
+                              return ChatBubble(
+                                message: message,
+                                profile: _profileCache[message.profileId]!,
+                              );
                             },
                           ),
                 ),
@@ -166,5 +206,52 @@ class _MessageBarState extends State<_MessageBar> {
       // 予期せぬエラーが起きた際は予期せぬエラー用のメッセージを表示
       if (mounted) context.showErrorSnackBar(message: unexpectedErrorMessage);
     }
+  }
+}
+
+/// チャットのメッセージを表示するためのウィジェット
+class ChatBubble extends StatelessWidget {
+  const ChatBubble({super.key, required this.message, required this.profile});
+
+  /// メッセージの本文
+  final Message message;
+
+  /// 投稿者のプロフィール情報
+  final Profile profile;
+
+  @override
+  Widget build(BuildContext context) {
+    List<Widget> chatContents = [
+      if (!message.isMine)
+        CircleAvatar(child: Text(profile.username.substring(0, 2))),
+      const SizedBox(width: 12),
+      Flexible(
+        child: Container(
+          padding: const EdgeInsets.symmetric(vertical: 8, horizontal: 12),
+          decoration: BoxDecoration(
+            color:
+                message.isMine
+                    ? Theme.of(context).primaryColor
+                    : Colors.grey[300],
+            borderRadius: BorderRadius.circular(8),
+          ),
+          child: Text(message.content),
+        ),
+      ),
+      const SizedBox(width: 12),
+      Text(format(message.createdAt, locale: 'en_short')),
+      const SizedBox(width: 60),
+    ];
+    if (message.isMine) {
+      chatContents = chatContents.reversed.toList();
+    }
+    return Padding(
+      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 18),
+      child: Row(
+        mainAxisAlignment:
+            message.isMine ? MainAxisAlignment.end : MainAxisAlignment.start,
+        children: chatContents,
+      ),
+    );
   }
 }
