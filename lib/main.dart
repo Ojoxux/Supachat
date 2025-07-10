@@ -1,13 +1,17 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 import 'env.dart';
 import 'pages/splash_page.dart';
+import 'core/di/injection_container.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
 
   await Supabase.initialize(url: Env.supabaseUrl, anonKey: Env.supabaseAnonKey);
-  runApp(const MyApp());
+  await setupDependencies();
+
+  runApp(const ProviderScope(child: MyApp()));
 }
 
 class MyApp extends StatelessWidget {
