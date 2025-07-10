@@ -175,3 +175,13 @@ Widget → ViewModel → UseCase → Repository → DataSource → Supabase API
 - 各層でのエラーハンドリングの役割分担
 
 **正直な感想**: 最初は「なんでこんなに複雑にするの？」と思ったけど、実際に機能追加や修正をするときに「あ、これがClean Architectureの恩恵か！」と実感できました。コードの見通しが良くなって、テストも書きやすくなりました 🎉
+
+## 参考資料
+
+### アーキテクチャ周り
+- https://zenn.dev/sakaki_web/articles/8f65b267929ed3
+- https://zenn.dev/humanhacker/articles/bbfb97a0d146bc
+- https://flutter.salon/%E7%BF%BB%E8%A8%B3/flutter-architecture-case-study/
+
+### Riverpod入門
+- https://www.flutter-study.dev/firebase-app/
