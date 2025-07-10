@@ -42,16 +42,41 @@ class AuthRemoteDataSourceImpl implements AuthRemoteDataSource {
         throw const ServerFailure(message: 'ユーザー登録に失敗しました');
       }
 
-      // プロフィールテーブルにもデータを挿入
-      await _client.from('profiles').insert({
-        'id': response.user!.id,
-        'username': username,
-      });
+      // プロフィールテーブルへの挿入はSupabaseのトリガーで自動的に行われる
+      // 少し待ってからプロフィール情報を取得
+      await Future<void>.delayed(const Duration(milliseconds: 500));
+
+      // プロフィール情報を取得（リトライ機能付き）
+      String finalUsername = username;
+      try {
+        final profileData =
+            await _client
+                .from('profiles')
+                .select('username')
+                .eq('id', response.user!.id)
+                .single();
+        finalUsername = profileData['username'] as String;
+      } catch (e) {
+        // トリガーが遅延している場合に備えて、もう一度試行
+        await Future<void>.delayed(const Duration(milliseconds: 1000));
+        try {
+          final profileData =
+              await _client
+                  .from('profiles')
+                  .select('username')
+                  .eq('id', response.user!.id)
+                  .single();
+          finalUsername = profileData['username'] as String;
+        } catch (e) {
+          // プロフィール取得に失敗した場合はサインアップ時の値を使用
+          finalUsername = username;
+        }
+      }
 
       return UserModel(
         id: response.user!.id,
         email: response.user!.email!,
-        username: username,
+        username: finalUsername,
         createdAt: DateTime.parse(response.user!.createdAt),
       );
     } on AuthException catch (e) {
