@@ -16,6 +16,10 @@ import '../../features/chat/domain/usecases/send_message.dart';
 import '../../features/chat/domain/usecases/get_messages.dart';
 import '../../features/chat/domain/usecases/watch_messages.dart';
 import '../../features/profile/data/datasources/profile_remote_datasource.dart';
+import '../../features/profile/data/repositories/profile_repository_impl.dart';
+import '../../features/profile/domain/repositories/profile_repository.dart';
+import '../../features/profile/domain/usecases/get_profile.dart';
+import '../../features/profile/domain/usecases/get_profiles.dart';
 
 final getIt = GetIt.instance;
 
@@ -45,6 +49,10 @@ Future<void> setupDependencies() async {
   getIt.registerLazySingleton<ChatRepository>(
     () => ChatRepositoryImpl(remoteDataSource: getIt(), networkInfo: getIt()),
   );
+  getIt.registerLazySingleton<ProfileRepository>(
+    () =>
+        ProfileRepositoryImpl(remoteDataSource: getIt(), networkInfo: getIt()),
+  );
 
   // Use cases
   getIt.registerLazySingleton(() => SignUp(getIt()));
@@ -54,4 +62,6 @@ Future<void> setupDependencies() async {
   getIt.registerLazySingleton(() => SendMessage(getIt()));
   getIt.registerLazySingleton(() => GetMessages(getIt()));
   getIt.registerLazySingleton(() => WatchMessages(getIt()));
+  getIt.registerLazySingleton(() => GetProfile(getIt()));
+  getIt.registerLazySingleton(() => GetProfiles(getIt()));
 }
