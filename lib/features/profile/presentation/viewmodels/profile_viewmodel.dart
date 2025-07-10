@@ -25,6 +25,7 @@ class ProfileViewModel extends StateNotifier<ProfileState> {
 
   /// 単一のプロフィールを取得
   Future<void> loadProfile(String profileId) async {
+    final currentProfiles = _getCurrentProfiles();
     state = const ProfileLoading();
 
     final result = await getProfile(profileId: profileId);
@@ -32,7 +33,6 @@ class ProfileViewModel extends StateNotifier<ProfileState> {
     result.fold((failure) => state = ProfileError(getErrorMessage(failure)), (
       profile,
     ) {
-      final currentProfiles = _getCurrentProfiles();
       final updatedProfiles = Map<String, Profile>.from(currentProfiles);
       updatedProfiles[profileId] = profile;
       state = ProfileLoaded(updatedProfiles);
@@ -43,6 +43,7 @@ class ProfileViewModel extends StateNotifier<ProfileState> {
   Future<void> loadProfiles(List<String> profileIds) async {
     if (profileIds.isEmpty) return;
 
+    final currentProfiles = _getCurrentProfiles();
     state = const ProfileLoading();
 
     final result = await getProfiles(profileIds: profileIds);
@@ -50,7 +51,6 @@ class ProfileViewModel extends StateNotifier<ProfileState> {
     result.fold((failure) => state = ProfileError(getErrorMessage(failure)), (
       profiles,
     ) {
-      final currentProfiles = _getCurrentProfiles();
       final updatedProfiles = Map<String, Profile>.from(currentProfiles);
 
       for (final profile in profiles) {
