@@ -3,19 +3,32 @@
 // Do not manually edit this file.
 
 // ignore_for_file: no_leading_underscores_for_library_prefixes
-import 'dart:async' as _i4;
+import 'dart:async' as _i8;
 
 import 'package:dartz/dartz.dart' as _i2;
-import 'package:flutter_and_supabase_chat_app/core/error/failures.dart' as _i5;
+import 'package:flutter_and_supabase_chat_app/core/error/failures.dart' as _i9;
 import 'package:flutter_and_supabase_chat_app/features/chat/domain/entities/message.dart'
-    as _i7;
+    as _i11;
 import 'package:flutter_and_supabase_chat_app/features/chat/domain/usecases/get_messages.dart'
-    as _i6;
+    as _i10;
 import 'package:flutter_and_supabase_chat_app/features/chat/domain/usecases/send_message.dart'
-    as _i3;
+    as _i7;
 import 'package:flutter_and_supabase_chat_app/features/chat/domain/usecases/watch_messages.dart'
-    as _i8;
+    as _i12;
+import 'package:flutter_and_supabase_chat_app/features/profile/domain/entities/profile.dart'
+    as _i13;
+import 'package:flutter_and_supabase_chat_app/features/profile/domain/usecases/get_profile.dart'
+    as _i4;
+import 'package:flutter_and_supabase_chat_app/features/profile/domain/usecases/get_profiles.dart'
+    as _i5;
+import 'package:flutter_and_supabase_chat_app/features/profile/presentation/viewmodels/profile_state.dart'
+    as _i6;
+import 'package:flutter_and_supabase_chat_app/features/profile/presentation/viewmodels/profile_viewmodel.dart'
+    as _i15;
 import 'package:mockito/mockito.dart' as _i1;
+import 'package:mockito/src/dummies.dart' as _i14;
+import 'package:riverpod/src/internals.dart' as _i3;
+import 'package:state_notifier/state_notifier.dart' as _i16;
 
 // ignore_for_file: type=lint
 // ignore_for_file: avoid_redundant_argument_values
@@ -36,16 +49,48 @@ class _FakeEither_0<L, R> extends _i1.SmartFake implements _i2.Either<L, R> {
     : super(parent, parentInvocation);
 }
 
+class _FakeProviderContainer_1 extends _i1.SmartFake
+    implements _i3.ProviderContainer {
+  _FakeProviderContainer_1(Object parent, Invocation parentInvocation)
+    : super(parent, parentInvocation);
+}
+
+class _FakeKeepAliveLink_2 extends _i1.SmartFake implements _i3.KeepAliveLink {
+  _FakeKeepAliveLink_2(Object parent, Invocation parentInvocation)
+    : super(parent, parentInvocation);
+}
+
+class _FakeProviderSubscription_3<State1> extends _i1.SmartFake
+    implements _i3.ProviderSubscription<State1> {
+  _FakeProviderSubscription_3(Object parent, Invocation parentInvocation)
+    : super(parent, parentInvocation);
+}
+
+class _FakeGetProfile_4 extends _i1.SmartFake implements _i4.GetProfile {
+  _FakeGetProfile_4(Object parent, Invocation parentInvocation)
+    : super(parent, parentInvocation);
+}
+
+class _FakeGetProfiles_5 extends _i1.SmartFake implements _i5.GetProfiles {
+  _FakeGetProfiles_5(Object parent, Invocation parentInvocation)
+    : super(parent, parentInvocation);
+}
+
+class _FakeProfileState_6 extends _i1.SmartFake implements _i6.ProfileState {
+  _FakeProfileState_6(Object parent, Invocation parentInvocation)
+    : super(parent, parentInvocation);
+}
+
 /// A class which mocks [SendMessage].
 ///
 /// See the documentation for Mockito's code generation for more information.
-class MockSendMessage extends _i1.Mock implements _i3.SendMessage {
+class MockSendMessage extends _i1.Mock implements _i7.SendMessage {
   MockSendMessage() {
     _i1.throwOnMissingStub(this);
   }
 
   @override
-  _i4.Future<_i2.Either<_i5.Failure, void>> call({
+  _i8.Future<_i2.Either<_i9.Failure, void>> call({
     required String? content,
     required String? profileId,
   }) =>
@@ -54,8 +99,8 @@ class MockSendMessage extends _i1.Mock implements _i3.SendMessage {
               #content: content,
               #profileId: profileId,
             }),
-            returnValue: _i4.Future<_i2.Either<_i5.Failure, void>>.value(
-              _FakeEither_0<_i5.Failure, void>(
+            returnValue: _i8.Future<_i2.Either<_i9.Failure, void>>.value(
+              _FakeEither_0<_i9.Failure, void>(
                 this,
                 Invocation.method(#call, [], {
                   #content: content,
@@ -64,26 +109,26 @@ class MockSendMessage extends _i1.Mock implements _i3.SendMessage {
               ),
             ),
           )
-          as _i4.Future<_i2.Either<_i5.Failure, void>>);
+          as _i8.Future<_i2.Either<_i9.Failure, void>>);
 }
 
 /// A class which mocks [GetMessages].
 ///
 /// See the documentation for Mockito's code generation for more information.
-class MockGetMessages extends _i1.Mock implements _i6.GetMessages {
+class MockGetMessages extends _i1.Mock implements _i10.GetMessages {
   MockGetMessages() {
     _i1.throwOnMissingStub(this);
   }
 
   @override
-  _i4.Future<_i2.Either<_i5.Failure, List<_i7.Message>>> call({
+  _i8.Future<_i2.Either<_i9.Failure, List<_i11.Message>>> call({
     required String? currentUserId,
   }) =>
       (super.noSuchMethod(
             Invocation.method(#call, [], {#currentUserId: currentUserId}),
             returnValue:
-                _i4.Future<_i2.Either<_i5.Failure, List<_i7.Message>>>.value(
-                  _FakeEither_0<_i5.Failure, List<_i7.Message>>(
+                _i8.Future<_i2.Either<_i9.Failure, List<_i11.Message>>>.value(
+                  _FakeEither_0<_i9.Failure, List<_i11.Message>>(
                     this,
                     Invocation.method(#call, [], {
                       #currentUserId: currentUserId,
@@ -91,22 +136,339 @@ class MockGetMessages extends _i1.Mock implements _i6.GetMessages {
                   ),
                 ),
           )
-          as _i4.Future<_i2.Either<_i5.Failure, List<_i7.Message>>>);
+          as _i8.Future<_i2.Either<_i9.Failure, List<_i11.Message>>>);
 }
 
 /// A class which mocks [WatchMessages].
 ///
 /// See the documentation for Mockito's code generation for more information.
-class MockWatchMessages extends _i1.Mock implements _i8.WatchMessages {
+class MockWatchMessages extends _i1.Mock implements _i12.WatchMessages {
   MockWatchMessages() {
     _i1.throwOnMissingStub(this);
   }
 
   @override
-  _i4.Stream<List<_i7.Message>> call({required String? currentUserId}) =>
+  _i8.Stream<List<_i11.Message>> call({required String? currentUserId}) =>
       (super.noSuchMethod(
             Invocation.method(#call, [], {#currentUserId: currentUserId}),
-            returnValue: _i4.Stream<List<_i7.Message>>.empty(),
+            returnValue: _i8.Stream<List<_i11.Message>>.empty(),
           )
-          as _i4.Stream<List<_i7.Message>>);
+          as _i8.Stream<List<_i11.Message>>);
+}
+
+/// A class which mocks [GetProfiles].
+///
+/// See the documentation for Mockito's code generation for more information.
+class MockGetProfiles extends _i1.Mock implements _i5.GetProfiles {
+  MockGetProfiles() {
+    _i1.throwOnMissingStub(this);
+  }
+
+  @override
+  _i8.Future<_i2.Either<_i9.Failure, List<_i13.Profile>>> call({
+    required List<String>? profileIds,
+  }) =>
+      (super.noSuchMethod(
+            Invocation.method(#call, [], {#profileIds: profileIds}),
+            returnValue:
+                _i8.Future<_i2.Either<_i9.Failure, List<_i13.Profile>>>.value(
+                  _FakeEither_0<_i9.Failure, List<_i13.Profile>>(
+                    this,
+                    Invocation.method(#call, [], {#profileIds: profileIds}),
+                  ),
+                ),
+          )
+          as _i8.Future<_i2.Either<_i9.Failure, List<_i13.Profile>>>);
+}
+
+/// A class which mocks [Ref].
+///
+/// See the documentation for Mockito's code generation for more information.
+class MockRef<State extends Object?> extends _i1.Mock
+    implements _i3.Ref<State> {
+  MockRef() {
+    _i1.throwOnMissingStub(this);
+  }
+
+  @override
+  _i3.ProviderContainer get container =>
+      (super.noSuchMethod(
+            Invocation.getter(#container),
+            returnValue: _FakeProviderContainer_1(
+              this,
+              Invocation.getter(#container),
+            ),
+          )
+          as _i3.ProviderContainer);
+
+  @override
+  T refresh<T>(_i3.Refreshable<T>? provider) =>
+      (super.noSuchMethod(
+            Invocation.method(#refresh, [provider]),
+            returnValue: _i14.dummyValue<T>(
+              this,
+              Invocation.method(#refresh, [provider]),
+            ),
+          )
+          as T);
+
+  @override
+  void invalidate(_i3.ProviderOrFamily? provider) => super.noSuchMethod(
+    Invocation.method(#invalidate, [provider]),
+    returnValueForMissingStub: null,
+  );
+
+  @override
+  void notifyListeners() => super.noSuchMethod(
+    Invocation.method(#notifyListeners, []),
+    returnValueForMissingStub: null,
+  );
+
+  @override
+  void listenSelf(
+    void Function(State?, State)? listener, {
+    void Function(Object, StackTrace)? onError,
+  }) => super.noSuchMethod(
+    Invocation.method(#listenSelf, [listener], {#onError: onError}),
+    returnValueForMissingStub: null,
+  );
+
+  @override
+  void invalidateSelf() => super.noSuchMethod(
+    Invocation.method(#invalidateSelf, []),
+    returnValueForMissingStub: null,
+  );
+
+  @override
+  void onAddListener(void Function()? cb) => super.noSuchMethod(
+    Invocation.method(#onAddListener, [cb]),
+    returnValueForMissingStub: null,
+  );
+
+  @override
+  void onRemoveListener(void Function()? cb) => super.noSuchMethod(
+    Invocation.method(#onRemoveListener, [cb]),
+    returnValueForMissingStub: null,
+  );
+
+  @override
+  void onResume(void Function()? cb) => super.noSuchMethod(
+    Invocation.method(#onResume, [cb]),
+    returnValueForMissingStub: null,
+  );
+
+  @override
+  void onCancel(void Function()? cb) => super.noSuchMethod(
+    Invocation.method(#onCancel, [cb]),
+    returnValueForMissingStub: null,
+  );
+
+  @override
+  void onDispose(void Function()? cb) => super.noSuchMethod(
+    Invocation.method(#onDispose, [cb]),
+    returnValueForMissingStub: null,
+  );
+
+  @override
+  T read<T>(_i3.ProviderListenable<T>? provider) =>
+      (super.noSuchMethod(
+            Invocation.method(#read, [provider]),
+            returnValue: _i14.dummyValue<T>(
+              this,
+              Invocation.method(#read, [provider]),
+            ),
+          )
+          as T);
+
+  @override
+  bool exists(_i3.ProviderBase<Object?>? provider) =>
+      (super.noSuchMethod(
+            Invocation.method(#exists, [provider]),
+            returnValue: false,
+          )
+          as bool);
+
+  @override
+  T watch<T>(_i3.ProviderListenable<T>? provider) =>
+      (super.noSuchMethod(
+            Invocation.method(#watch, [provider]),
+            returnValue: _i14.dummyValue<T>(
+              this,
+              Invocation.method(#watch, [provider]),
+            ),
+          )
+          as T);
+
+  @override
+  _i3.KeepAliveLink keepAlive() =>
+      (super.noSuchMethod(
+            Invocation.method(#keepAlive, []),
+            returnValue: _FakeKeepAliveLink_2(
+              this,
+              Invocation.method(#keepAlive, []),
+            ),
+          )
+          as _i3.KeepAliveLink);
+
+  @override
+  _i3.ProviderSubscription<T> listen<T>(
+    _i3.ProviderListenable<T>? provider,
+    void Function(T?, T)? listener, {
+    void Function(Object, StackTrace)? onError,
+    bool? fireImmediately,
+  }) =>
+      (super.noSuchMethod(
+            Invocation.method(
+              #listen,
+              [provider, listener],
+              {#onError: onError, #fireImmediately: fireImmediately},
+            ),
+            returnValue: _FakeProviderSubscription_3<T>(
+              this,
+              Invocation.method(
+                #listen,
+                [provider, listener],
+                {#onError: onError, #fireImmediately: fireImmediately},
+              ),
+            ),
+          )
+          as _i3.ProviderSubscription<T>);
+}
+
+/// A class which mocks [ProfileViewModel].
+///
+/// See the documentation for Mockito's code generation for more information.
+class MockProfileViewModel extends _i1.Mock implements _i15.ProfileViewModel {
+  MockProfileViewModel() {
+    _i1.throwOnMissingStub(this);
+  }
+
+  @override
+  _i4.GetProfile get getProfile =>
+      (super.noSuchMethod(
+            Invocation.getter(#getProfile),
+            returnValue: _FakeGetProfile_4(
+              this,
+              Invocation.getter(#getProfile),
+            ),
+          )
+          as _i4.GetProfile);
+
+  @override
+  _i5.GetProfiles get getProfiles =>
+      (super.noSuchMethod(
+            Invocation.getter(#getProfiles),
+            returnValue: _FakeGetProfiles_5(
+              this,
+              Invocation.getter(#getProfiles),
+            ),
+          )
+          as _i5.GetProfiles);
+
+  @override
+  bool get mounted =>
+      (super.noSuchMethod(Invocation.getter(#mounted), returnValue: false)
+          as bool);
+
+  @override
+  _i8.Stream<_i6.ProfileState> get stream =>
+      (super.noSuchMethod(
+            Invocation.getter(#stream),
+            returnValue: _i8.Stream<_i6.ProfileState>.empty(),
+          )
+          as _i8.Stream<_i6.ProfileState>);
+
+  @override
+  _i6.ProfileState get state =>
+      (super.noSuchMethod(
+            Invocation.getter(#state),
+            returnValue: _FakeProfileState_6(this, Invocation.getter(#state)),
+          )
+          as _i6.ProfileState);
+
+  @override
+  _i6.ProfileState get debugState =>
+      (super.noSuchMethod(
+            Invocation.getter(#debugState),
+            returnValue: _FakeProfileState_6(
+              this,
+              Invocation.getter(#debugState),
+            ),
+          )
+          as _i6.ProfileState);
+
+  @override
+  bool get hasListeners =>
+      (super.noSuchMethod(Invocation.getter(#hasListeners), returnValue: false)
+          as bool);
+
+  @override
+  set onError(_i16.ErrorListener? _onError) => super.noSuchMethod(
+    Invocation.setter(#onError, _onError),
+    returnValueForMissingStub: null,
+  );
+
+  @override
+  set state(_i6.ProfileState? value) => super.noSuchMethod(
+    Invocation.setter(#state, value),
+    returnValueForMissingStub: null,
+  );
+
+  @override
+  _i8.Future<void> loadProfile(String? profileId) =>
+      (super.noSuchMethod(
+            Invocation.method(#loadProfile, [profileId]),
+            returnValue: _i8.Future<void>.value(),
+            returnValueForMissingStub: _i8.Future<void>.value(),
+          )
+          as _i8.Future<void>);
+
+  @override
+  _i8.Future<void> loadProfiles(List<String>? profileIds) =>
+      (super.noSuchMethod(
+            Invocation.method(#loadProfiles, [profileIds]),
+            returnValue: _i8.Future<void>.value(),
+            returnValueForMissingStub: _i8.Future<void>.value(),
+          )
+          as _i8.Future<void>);
+
+  @override
+  _i13.Profile? getProfileById(String? profileId) =>
+      (super.noSuchMethod(Invocation.method(#getProfileById, [profileId]))
+          as _i13.Profile?);
+
+  @override
+  void clearError() => super.noSuchMethod(
+    Invocation.method(#clearError, []),
+    returnValueForMissingStub: null,
+  );
+
+  @override
+  bool updateShouldNotify(_i6.ProfileState? old, _i6.ProfileState? current) =>
+      (super.noSuchMethod(
+            Invocation.method(#updateShouldNotify, [old, current]),
+            returnValue: false,
+          )
+          as bool);
+
+  @override
+  _i16.RemoveListener addListener(
+    _i16.Listener<_i6.ProfileState>? listener, {
+    bool? fireImmediately = true,
+  }) =>
+      (super.noSuchMethod(
+            Invocation.method(
+              #addListener,
+              [listener],
+              {#fireImmediately: fireImmediately},
+            ),
+            returnValue: () {},
+          )
+          as _i16.RemoveListener);
+
+  @override
+  void dispose() => super.noSuchMethod(
+    Invocation.method(#dispose, []),
+    returnValueForMissingStub: null,
+  );
 }

@@ -3,6 +3,7 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:mockito/mockito.dart';
 import 'package:mockito/annotations.dart';
 import 'package:dartz/dartz.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import 'package:flutter_and_supabase_chat_app/core/error/failures.dart';
 import 'package:flutter_and_supabase_chat_app/features/chat/domain/entities/message.dart';
@@ -11,17 +12,29 @@ import 'package:flutter_and_supabase_chat_app/features/chat/domain/usecases/get_
 import 'package:flutter_and_supabase_chat_app/features/chat/domain/usecases/watch_messages.dart';
 import 'package:flutter_and_supabase_chat_app/features/chat/presentation/viewmodels/chat_viewmodel.dart';
 import 'package:flutter_and_supabase_chat_app/features/chat/presentation/viewmodels/chat_state.dart';
+import 'package:flutter_and_supabase_chat_app/features/profile/domain/usecases/get_profiles.dart';
+import 'package:flutter_and_supabase_chat_app/features/profile/presentation/viewmodels/profile_viewmodel.dart';
 
 import 'chat_viewmodel_test.mocks.dart';
 
 // Mockitoを使用してモックを生成
-@GenerateMocks([SendMessage, GetMessages, WatchMessages])
+@GenerateMocks([
+  SendMessage,
+  GetMessages,
+  WatchMessages,
+  GetProfiles,
+  Ref,
+  ProfileViewModel,
+])
 void main() {
+  provideDummy<ProfileViewModel>(MockProfileViewModel());
   group('ChatViewModel', () {
     late ChatViewModel chatViewModel;
     late MockSendMessage mockSendMessage;
     late MockGetMessages mockGetMessages;
     late MockWatchMessages mockWatchMessages;
+    late MockGetProfiles mockGetProfiles;
+    late MockRef mockRef;
     late StreamController<List<Message>> messagesStreamController;
 
     // テスト用のダミーデータ
@@ -51,12 +64,21 @@ void main() {
       mockSendMessage = MockSendMessage();
       mockGetMessages = MockGetMessages();
       mockWatchMessages = MockWatchMessages();
+      mockGetProfiles = MockGetProfiles();
+      mockRef = MockRef();
       messagesStreamController = StreamController<List<Message>>();
+
+      // MockRefのスタブを設定
+      when(
+        mockRef.read(profileViewModelProvider.notifier),
+      ).thenReturn(MockProfileViewModel());
 
       chatViewModel = ChatViewModel(
         sendMessage: mockSendMessage,
         getMessages: mockGetMessages,
         watchMessages: mockWatchMessages,
+        getProfiles: mockGetProfiles,
+        ref: mockRef,
       );
     });
 
@@ -192,34 +214,6 @@ void main() {
         expect(chatViewModel.state, isA<ChatInitial>());
       });
 
-      test('メッセージ送信中はChatSending状態になる', () async {
-        // Arrange
-        final completer = Completer<Either<Failure, void>>();
-        when(
-          mockSendMessage(content: testContent, profileId: testProfileId),
-        ).thenAnswer((_) => completer.future);
-
-        // 事前にメッセージを設定
-        chatViewModel.state = ChatLoaded(testMessages);
-
-        // Act
-        final future = chatViewModel.sendMessageAction(
-          content: testContent,
-          profileId: testProfileId,
-        );
-
-        // Assert - 送信中状態
-        expect(chatViewModel.state, isA<ChatSending>());
-        expect(
-          (chatViewModel.state as ChatSending).messages,
-          equals(testMessages),
-        );
-
-        // 完了させる
-        completer.complete(const Right(null));
-        await future;
-      });
-
       test('メッセージ送信が成功すると、状態は変更されない（リアルタイム更新待ち）', () async {
         // Arrange
         when(
@@ -235,8 +229,12 @@ void main() {
           profileId: testProfileId,
         );
 
-        // Assert - 送信後は元の状態に戻る（リアルタイム更新で新しいメッセージが追加される）
-        expect(chatViewModel.state, isA<ChatSending>());
+        // Assert - 送信後も元の状態のまま（リアルタイム更新で新しいメッセージが追加される）
+        expect(chatViewModel.state, isA<ChatLoaded>());
+        expect(
+          (chatViewModel.state as ChatLoaded).messages,
+          equals(testMessages),
+        );
       });
 
       test('メッセージ送信が失敗すると、ChatError状態になる', () async {
@@ -279,7 +277,7 @@ void main() {
         expect(chatViewModel.state, isA<ChatLoaded>());
       });
 
-      test('ChatSending状態の場合、メッセージリストを返す', () async {
+      test('ChatLoaded状態でメッセージ送信後も状態が保持される', () async {
         // Arrange
         when(
           mockSendMessage(content: testContent, profileId: testProfileId),
@@ -288,19 +286,17 @@ void main() {
         chatViewModel.state = ChatLoaded(testMessages);
 
         // Act
-        final future = chatViewModel.sendMessageAction(
+        await chatViewModel.sendMessageAction(
           content: testContent,
           profileId: testProfileId,
         );
 
-        // Assert - 送信中状態でメッセージが保持される
-        expect(chatViewModel.state, isA<ChatSending>());
+        // Assert - 送信後も状態が保持される
+        expect(chatViewModel.state, isA<ChatLoaded>());
         expect(
-          (chatViewModel.state as ChatSending).messages,
+          (chatViewModel.state as ChatLoaded).messages,
           equals(testMessages),
         );
-
-        await future;
       });
 
       test('ChatError状態の場合、メッセージリストを返す', () async {
