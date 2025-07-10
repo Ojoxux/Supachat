@@ -13,6 +13,6 @@ class SignIn {
     required String email,
     required String password,
   }) async {
-    return await _repository.signIn(email: email, password: password);
+    return _repository.signIn(email: email, password: password);
   }
 }

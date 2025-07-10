@@ -28,7 +28,7 @@ class ProfileRemoteDataSourceImpl implements ProfileRemoteDataSource {
               .eq('id', profileId)
               .single();
 
-      return ProfileModel.fromMap(response as Map<String, dynamic>);
+      return ProfileModel.fromMap(response);
     } on PostgrestException catch (e) {
       throw ServerFailure(message: e.message);
     } catch (e) {
@@ -46,9 +46,7 @@ class ProfileRemoteDataSourceImpl implements ProfileRemoteDataSource {
           .select('*')
           .inFilter('id', profileIds);
 
-      return response
-          .map((map) => ProfileModel.fromMap(map as Map<String, dynamic>))
-          .toList();
+      return response.map((map) => ProfileModel.fromMap(map)).toList();
     } on PostgrestException catch (e) {
       throw ServerFailure(message: e.message);
     } catch (e) {

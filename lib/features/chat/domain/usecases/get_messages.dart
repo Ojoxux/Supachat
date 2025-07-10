@@ -10,6 +10,6 @@ class GetMessages {
 
   /// メッセージ一覧を取得
   ResultFuture<List<Message>> call({required String currentUserId}) async {
-    return await _repository.getMessages(currentUserId: currentUserId);
+    return _repository.getMessages(currentUserId: currentUserId);
   }
 }

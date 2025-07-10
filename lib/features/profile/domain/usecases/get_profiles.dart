@@ -10,6 +10,6 @@ class GetProfiles {
 
   /// 複数のプロフィールを取得
   ResultFuture<List<Profile>> call({required List<String> profileIds}) async {
-    return await _repository.getProfiles(profileIds: profileIds);
+    return _repository.getProfiles(profileIds: profileIds);
   }
 }

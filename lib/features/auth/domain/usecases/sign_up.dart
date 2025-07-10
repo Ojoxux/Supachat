@@ -14,7 +14,7 @@ class SignUp {
     required String password,
     required String username,
   }) async {
-    return await _repository.signUp(
+    return _repository.signUp(
       email: email,
       password: password,
       username: username,

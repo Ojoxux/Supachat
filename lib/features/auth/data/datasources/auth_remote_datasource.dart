@@ -1,6 +1,5 @@
 import 'package:supabase_flutter/supabase_flutter.dart';
 import '../../../../core/error/failures.dart';
-import '../../../../core/utils/typedef.dart';
 import '../models/user_model.dart';
 
 /// 認証のリモートデータソースのインターフェース

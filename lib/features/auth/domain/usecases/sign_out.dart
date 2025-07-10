@@ -9,6 +9,6 @@ class SignOut {
 
   /// ログアウトを実行
   ResultVoid call() async {
-    return await _repository.signOut();
+    return _repository.signOut();
   }
 }

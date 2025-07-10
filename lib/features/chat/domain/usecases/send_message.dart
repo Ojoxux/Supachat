@@ -9,9 +9,6 @@ class SendMessage {
 
   /// メッセージを送信
   ResultVoid call({required String content, required String profileId}) async {
-    return await _repository.sendMessage(
-      content: content,
-      profileId: profileId,
-    );
+    return _repository.sendMessage(content: content, profileId: profileId);
   }
 }

@@ -2,7 +2,7 @@ import 'package:equatable/equatable.dart';
 
 /// アプリケーション全体で使用するFailureの基底クラス
 abstract class Failure extends Equatable {
-  const Failure([List properties = const <dynamic>[]]);
+  const Failure([List<dynamic> properties = const <dynamic>[]]);
 
   @override
   List<Object> get props => [];
@@ -10,9 +10,9 @@ abstract class Failure extends Equatable {
 
 /// サーバーエラー
 class ServerFailure extends Failure {
-  final String message;
-
   const ServerFailure({required this.message});
+
+  final String message;
 
   @override
   List<Object> get props => [message];
@@ -20,9 +20,9 @@ class ServerFailure extends Failure {
 
 /// ネットワークエラー
 class NetworkFailure extends Failure {
-  final String message;
-
   const NetworkFailure({required this.message});
+
+  final String message;
 
   @override
   List<Object> get props => [message];
@@ -30,9 +30,9 @@ class NetworkFailure extends Failure {
 
 /// 認証エラー
 class AuthFailure extends Failure {
-  final String message;
-
   const AuthFailure({required this.message});
+
+  final String message;
 
   @override
   List<Object> get props => [message];
@@ -40,9 +40,9 @@ class AuthFailure extends Failure {
 
 /// バリデーションエラー
 class ValidationFailure extends Failure {
-  final String message;
-
   const ValidationFailure({required this.message});
+
+  final String message;
 
   @override
   List<Object> get props => [message];
@@ -50,9 +50,9 @@ class ValidationFailure extends Failure {
 
 /// キャッシュエラー
 class CacheFailure extends Failure {
-  final String message;
-
   const CacheFailure({required this.message});
+
+  final String message;
 
   @override
   List<Object> get props => [message];

@@ -10,6 +10,6 @@ class GetProfile {
 
   /// プロフィールを取得
   ResultFuture<Profile> call({required String profileId}) async {
-    return await _repository.getProfile(profileId: profileId);
+    return _repository.getProfile(profileId: profileId);
   }
 }

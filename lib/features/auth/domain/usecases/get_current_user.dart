@@ -10,6 +10,6 @@ class GetCurrentUser {
 
   /// 現在のユーザーを取得
   ResultFuture<User?> call() async {
-    return await _repository.getCurrentUser();
+    return _repository.getCurrentUser();
   }
 }
