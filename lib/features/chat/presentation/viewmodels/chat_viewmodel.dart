@@ -6,6 +6,8 @@ import '../../domain/entities/message.dart';
 import '../../domain/usecases/send_message.dart';
 import '../../domain/usecases/get_messages.dart';
 import '../../domain/usecases/watch_messages.dart';
+import '../../../profile/domain/usecases/get_profiles.dart';
+import '../../../profile/presentation/viewmodels/profile_viewmodel.dart';
 import 'chat_state.dart';
 
 /// チャットViewModelのProvider
@@ -14,6 +16,8 @@ final chatViewModelProvider = StateNotifierProvider<ChatViewModel, ChatState>(
     sendMessage: getIt<SendMessage>(),
     getMessages: getIt<GetMessages>(),
     watchMessages: getIt<WatchMessages>(),
+    getProfiles: getIt<GetProfiles>(),
+    ref: ref,
   ),
 );
 
@@ -23,11 +27,15 @@ class ChatViewModel extends StateNotifier<ChatState> {
     required this.sendMessage,
     required this.getMessages,
     required this.watchMessages,
+    required this.getProfiles,
+    required this.ref,
   }) : super(const ChatInitial());
 
   final SendMessage sendMessage;
   final GetMessages getMessages;
   final WatchMessages watchMessages;
+  final GetProfiles getProfiles;
+  final Ref ref;
 
   StreamSubscription<List<Message>>? _messagesSubscription;
 
@@ -39,6 +47,8 @@ class ChatViewModel extends StateNotifier<ChatState> {
     _messagesSubscription = watchMessages(currentUserId: currentUserId).listen(
       (messages) {
         state = ChatLoaded(messages);
+        // メッセージに関連するプロフィール情報を取得
+        _loadProfilesForMessages(messages);
       },
       onError: (Object error) {
         state = ChatError(
@@ -49,15 +59,21 @@ class ChatViewModel extends StateNotifier<ChatState> {
     );
   }
 
+  /// メッセージに関連するプロフィール情報を取得
+  void _loadProfilesForMessages(List<Message> messages) {
+    final profileIds = messages.map((m) => m.profileId).toSet().toList();
+    if (profileIds.isNotEmpty) {
+      // ProfileViewModelを通じてプロフィール情報を取得
+      ref.read(profileViewModelProvider.notifier).loadProfiles(profileIds);
+    }
+  }
+
   /// メッセージを送信
   Future<void> sendMessageAction({
     required String content,
     required String profileId,
   }) async {
     if (content.trim().isEmpty) return;
-
-    // 送信中状態に変更
-    state = ChatSending(_getCurrentMessages());
 
     final result = await sendMessage(content: content, profileId: profileId);
 
@@ -79,8 +95,6 @@ class ChatViewModel extends StateNotifier<ChatState> {
   List<Message> _getCurrentMessages() {
     final currentState = state;
     if (currentState is ChatLoaded) {
-      return currentState.messages;
-    } else if (currentState is ChatSending) {
       return currentState.messages;
     } else if (currentState is ChatError) {
       return currentState.messages;

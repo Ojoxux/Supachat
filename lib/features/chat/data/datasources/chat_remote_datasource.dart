@@ -45,7 +45,7 @@ class ChatRemoteDataSourceImpl implements ChatRemoteDataSource {
       final response = await _client
           .from('messages')
           .select('*')
-          .order('created_at', ascending: true);
+          .order('created_at', ascending: false);
 
       return response
           .map(
@@ -66,7 +66,7 @@ class ChatRemoteDataSourceImpl implements ChatRemoteDataSource {
       return _client
           .from('messages')
           .stream(primaryKey: ['id'])
-          .order('created_at', ascending: true)
+          .order('created_at', ascending: false)
           .map(
             (maps) =>
                 maps

@@ -30,6 +30,8 @@ class ChatPage extends ConsumerStatefulWidget {
 }
 
 class _ChatPageState extends ConsumerState<ChatPage> {
+  final ScrollController _scrollController = ScrollController();
+
   @override
   void initState() {
     super.initState();
@@ -42,6 +44,23 @@ class _ChatPageState extends ConsumerState<ChatPage> {
             .startWatchingMessages(currentUserId);
       }
     });
+  }
+
+  @override
+  void dispose() {
+    _scrollController.dispose();
+    super.dispose();
+  }
+
+  /// 一番下までスクロール
+  void _scrollToBottom() {
+    if (_scrollController.hasClients) {
+      _scrollController.animateTo(
+        _scrollController.position.maxScrollExtent,
+        duration: const Duration(milliseconds: 300),
+        curve: Curves.easeOut,
+      );
+    }
   }
 
   @override
@@ -174,12 +193,18 @@ class _ChatPageState extends ConsumerState<ChatPage> {
         );
       }
 
+      // 新しいメッセージが追加されたときに自動スクロール
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        _scrollToBottom();
+      });
+
       return ListView.builder(
-        reverse: true,
+        controller: _scrollController,
+        reverse: false,
         padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
         itemCount: messages.length,
         itemBuilder: (context, index) {
-          final message = messages[index];
+          final message = messages[messages.length - 1 - index];
           return Consumer(
             builder: (context, ref, child) {
               final profileState = ref.watch(profileViewModelProvider);
@@ -188,14 +213,35 @@ class _ChatPageState extends ConsumerState<ChatPage> {
                 final profile = profileState.profiles[message.profileId];
 
                 if (profile == null) {
-                  // プロフィールがロードされていない場合は空のウィジェットを返す
-                  return const SizedBox.shrink();
+                  // プロフィールがロードされていない場合は、プロフィールを取得
+                  WidgetsBinding.instance.addPostFrameCallback((_) {
+                    ref
+                        .read(profileViewModelProvider.notifier)
+                        .loadProfile(message.profileId);
+                  });
+                  // 一時的なプロフィール情報で表示
+                  return ModernMessageCard(
+                    message: message,
+                    profile: Profile(
+                      id: message.profileId,
+                      username: 'Loading...',
+                      createdAt: DateTime.now(),
+                    ),
+                  );
                 }
 
                 return ModernMessageCard(message: message, profile: profile);
               }
 
-              return const SizedBox.shrink();
+              // プロフィール情報をロード中の場合も一時的な情報で表示
+              return ModernMessageCard(
+                message: message,
+                profile: Profile(
+                  id: message.profileId,
+                  username: 'Loading...',
+                  createdAt: DateTime.now(),
+                ),
+              );
             },
           );
         },
@@ -231,7 +277,7 @@ class _ModernMessageBarState extends ConsumerState<_ModernMessageBar> {
   @override
   Widget build(BuildContext context) {
     final chatState = ref.watch(chatViewModelProvider);
-    final isSending = chatState is ChatLoading;
+    final isSending = chatState is ChatSending;
 
     return Container(
       color: Colors.white,
@@ -329,6 +375,13 @@ class _ModernMessageBarState extends ConsumerState<_ModernMessageBar> {
       await ref
           .read(chatViewModelProvider.notifier)
           .sendMessageAction(content: text, profileId: currentUserId);
+
+      // メッセージ送信後に一番下までスクロール
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        // 親のスクロールコントローラーにアクセスするため、contextを使用
+        final chatPageState = context.findAncestorStateOfType<_ChatPageState>();
+        chatPageState?._scrollToBottom();
+      });
     }
   }
 }
