@@ -2,6 +2,11 @@
 class Profile {
   Profile({required this.id, required this.username, required this.createdAt});
 
+  Profile.fromMap(Map<String, dynamic> map)
+    : id = map['id'] as String,
+      username = map['username'] as String,
+      createdAt = DateTime.parse(map['created_at'] as String);
+
   /// ユーザーのID
   final String id;
 
@@ -10,9 +15,4 @@ class Profile {
 
   /// ユーザーの作成日時
   final DateTime createdAt;
-
-  Profile.fromMap(Map<String, dynamic> map)
-    : id = map['id'],
-      username = map['username'],
-      createdAt = DateTime.parse(map['created_at']);
 }

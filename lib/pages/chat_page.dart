@@ -5,10 +5,10 @@ import 'package:flutter/material.dart';
 import 'package:timeago/timeago.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 
-import 'package:flutter_and_supabase_chat_app/model/message.dart';
-import 'package:flutter_and_supabase_chat_app/model/profile.dart';
-import 'package:flutter_and_supabase_chat_app/constants.dart';
-import 'package:flutter_and_supabase_chat_app/pages/register_page.dart';
+import '../model/message.dart';
+import '../model/profile.dart';
+import '../constants.dart';
+import 'register_page.dart';
 
 /// 他のユーザーとチャットができるページ
 ///

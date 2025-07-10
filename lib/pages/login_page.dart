@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
-import 'package:flutter_and_supabase_chat_app/constants.dart';
-import 'package:flutter_and_supabase_chat_app/pages/chat_page.dart';
-import 'package:flutter_and_supabase_chat_app/pages/register_page.dart';
+import '../constants.dart';
+import 'chat_page.dart';
+import 'register_page.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 
 class LoginPage extends StatefulWidget {
@@ -32,7 +32,7 @@ class LoginPageState extends State<LoginPage> {
 
       // ログイン後にチャットページに飛ぶ
       if (mounted) {
-        Navigator.of(
+        await Navigator.of(
           context,
         ).pushAndRemoveUntil(ChatPage.route(), (route) => false);
       }
@@ -237,7 +237,7 @@ class LoginPageState extends State<LoginPage> {
                   GestureDetector(
                     onTap: () {
                       Navigator.of(context).push(
-                        MaterialPageRoute(
+                        MaterialPageRoute<void>(
                           builder: (context) => const RegisterPage(),
                         ),
                       );

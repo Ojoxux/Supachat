@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
-import 'package:flutter_and_supabase_chat_app/constants.dart';
-import 'package:flutter_and_supabase_chat_app/pages/chat_page.dart';
-import 'package:flutter_and_supabase_chat_app/pages/login_page.dart';
+import '../constants.dart';
+import 'chat_page.dart';
+import 'login_page.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 
 class RegisterPage extends StatefulWidget {
@@ -42,7 +42,7 @@ class _RegisterPageState extends State<RegisterPage> {
         data: {'username': username},
       );
       if (mounted) {
-        Navigator.of(
+        await Navigator.of(
           context,
         ).pushAndRemoveUntil(ChatPage.route(), (route) => false);
       }

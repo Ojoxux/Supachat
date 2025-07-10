@@ -1,9 +1,10 @@
 // ignore_for_file: use_build_context_synchronously
 
+import 'dart:async';
 import 'package:flutter/material.dart';
-import 'package:flutter_and_supabase_chat_app/constants.dart';
-import 'package:flutter_and_supabase_chat_app/pages/chat_page.dart';
-import 'package:flutter_and_supabase_chat_app/pages/register_page.dart';
+import '../constants.dart';
+import 'chat_page.dart';
+import 'register_page.dart';
 
 /// ログイン状態に応じてユーザーをリダイレクトするページ
 class SplashPage extends StatefulWidget {
@@ -17,21 +18,21 @@ class SplashPageState extends State<SplashPage> {
   @override
   void initState() {
     super.initState();
-    _redirect();
+    unawaited(_redirect());
   }
 
   Future<void> _redirect() async {
     // widgetがmountするのを待つ
-    await Future.delayed(Duration.zero);
+    await Future<void>.delayed(Duration.zero);
 
     /// ログイン状態に応じて適切なページにリダイレクト
     final session = supabase.auth.currentSession;
     if (session == null) {
-      Navigator.of(
+      await Navigator.of(
         context,
       ).pushAndRemoveUntil(RegisterPage.route(), (route) => false);
     } else {
-      Navigator.of(
+      await Navigator.of(
         context,
       ).pushAndRemoveUntil(ChatPage.route(), (route) => false);
     }
