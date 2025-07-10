@@ -1,63 +1,27 @@
 import 'package:flutter/material.dart';
-import '../constants.dart';
-import 'chat_page.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
+import '../../../../constants.dart';
+import '../viewmodels/auth_viewmodel.dart';
+import '../viewmodels/auth_state.dart';
+import '../../../chat/presentation/pages/chat_page.dart';
 import 'login_page.dart';
-import 'package:supabase_flutter/supabase_flutter.dart';
 
-class RegisterPage extends StatefulWidget {
+class RegisterPage extends ConsumerStatefulWidget {
   const RegisterPage({super.key});
+
   static Route<void> route({bool isRegistering = false}) {
     return MaterialPageRoute(builder: (context) => const RegisterPage());
   }
 
   @override
-  State<RegisterPage> createState() => _RegisterPageState();
+  ConsumerState<RegisterPage> createState() => _RegisterPageState();
 }
 
-class _RegisterPageState extends State<RegisterPage> {
-  bool _isLoading = false;
+class _RegisterPageState extends ConsumerState<RegisterPage> {
   final _formKey = GlobalKey<FormState>();
   final _emailController = TextEditingController();
   final _passwordController = TextEditingController();
   final _usernameController = TextEditingController();
-
-  Future<void> _signUp() async {
-    final isValid = _formKey.currentState!.validate();
-    if (!isValid) {
-      return;
-    }
-
-    setState(() {
-      _isLoading = true;
-    });
-
-    final email = _emailController.text;
-    final password = _passwordController.text;
-    final username = _usernameController.text;
-
-    try {
-      await supabase.auth.signUp(
-        email: email,
-        password: password,
-        data: {'username': username},
-      );
-      if (mounted) {
-        await Navigator.of(
-          context,
-        ).pushAndRemoveUntil(ChatPage.route(), (route) => false);
-      }
-    } on AuthException catch (error) {
-      if (mounted) context.showErrorSnackBar(message: error.message);
-    } catch (error) {
-      if (mounted) context.showErrorSnackBar(message: unexpectedErrorMessage);
-    }
-
-    if (mounted) {
-      setState(() {
-        _isLoading = false;
-      });
-    }
-  }
 
   @override
   void dispose() {
@@ -67,8 +31,37 @@ class _RegisterPageState extends State<RegisterPage> {
     super.dispose();
   }
 
+  Future<void> _signUp() async {
+    if (!_formKey.currentState!.validate()) return;
+
+    await ref
+        .read(authViewModelProvider.notifier)
+        .signUpUser(
+          email: _emailController.text.trim(),
+          password: _passwordController.text,
+          username: _usernameController.text.trim(),
+        );
+  }
+
   @override
   Widget build(BuildContext context) {
+    // AuthViewModelの状態を監視
+    ref.listen<AuthState>(authViewModelProvider, (previous, next) {
+      if (next is AuthAuthenticated) {
+        // 登録成功時はチャットページへ
+        Navigator.of(
+          context,
+        ).pushAndRemoveUntil(ChatPage.route(), (route) => false);
+      } else if (next is AuthError) {
+        // エラー時はSnackBarを表示
+        context.showErrorSnackBar(message: next.message);
+        ref.read(authViewModelProvider.notifier).clearError();
+      }
+    });
+
+    final authState = ref.watch(authViewModelProvider);
+    final isLoading = authState is AuthLoading;
+
     return Scaffold(
       backgroundColor: Colors.white,
       body: SafeArea(
@@ -178,11 +171,11 @@ class _RegisterPageState extends State<RegisterPage> {
                 Container(
                   height: 50,
                   decoration: BoxDecoration(
-                    color: _isLoading ? Colors.grey[300] : Colors.black,
+                    color: isLoading ? Colors.grey[300] : Colors.black,
                     borderRadius: BorderRadius.circular(12),
                   ),
                   child: ElevatedButton(
-                    onPressed: _isLoading ? null : _signUp,
+                    onPressed: isLoading ? null : _signUp,
                     style: ElevatedButton.styleFrom(
                       backgroundColor: Colors.transparent,
                       shadowColor: Colors.transparent,
@@ -191,15 +184,15 @@ class _RegisterPageState extends State<RegisterPage> {
                       ),
                     ),
                     child:
-                        _isLoading
+                        isLoading
                             ? const SizedBox(
-                              width: 18,
-                              height: 18,
+                              width: 20,
+                              height: 20,
                               child: CircularProgressIndicator(
-                                valueColor: AlwaysStoppedAnimation<Color>(
-                                  Colors.white,
-                                ),
                                 strokeWidth: 2,
+                                valueColor: AlwaysStoppedAnimation<Color>(
+                                  Colors.black54,
+                                ),
                               ),
                             )
                             : const Text(
@@ -212,24 +205,28 @@ class _RegisterPageState extends State<RegisterPage> {
                             ),
                   ),
                 ),
-                const SizedBox(height: 12),
+                const SizedBox(height: 20),
 
-                // ログインページへのリンク
+                // ログインリンク
                 Row(
                   mainAxisAlignment: MainAxisAlignment.center,
                   children: [
                     const Text(
-                      'すでにアカウントをお持ちの方は',
-                      style: TextStyle(fontSize: 14, color: Colors.black54),
+                      'すでにアカウントをお持ちの場合は、',
+                      style: TextStyle(fontSize: 12, color: Colors.black54),
                     ),
                     GestureDetector(
                       onTap: () {
-                        Navigator.of(context).push(LoginPage.route());
+                        Navigator.of(context).push(
+                          MaterialPageRoute<void>(
+                            builder: (context) => const LoginPage(),
+                          ),
+                        );
                       },
                       child: const Text(
                         'ログイン',
                         style: TextStyle(
-                          fontSize: 14,
+                          fontSize: 12,
                           color: Colors.black,
                           fontWeight: FontWeight.w600,
                           decoration: TextDecoration.underline,
@@ -252,7 +249,7 @@ class _RegisterPageState extends State<RegisterPage> {
     required String label,
     required TextEditingController controller,
     required String hintText,
-    TextInputType? keyboardType,
+    TextInputType keyboardType = TextInputType.text,
     bool obscureText = false,
     String? Function(String?)? validator,
   }) {

@@ -35,9 +35,24 @@ dependencies:
   # Use with the CupertinoIcons class for iOS style icons.
   cupertino_icons: ^1.0.8
 
+  # Supabase
   supabase_flutter: ^2.9.0
 
+  # UI
   timeago: ^3.1.0
+
+  # 状態管理
+  flutter_riverpod: ^2.4.9
+
+  # 依存性注入
+  get_it: ^7.6.4
+  injectable: ^2.3.2
+
+  # 関数型プログラミング
+  dartz: ^0.10.1
+
+  # ユーティリティ
+  equatable: ^2.0.5
 
 dev_dependencies:
   flutter_test:
@@ -54,6 +69,11 @@ dev_dependencies:
   mockito: ^5.4.4
   build_runner: ^2.4.13
   import_sorter: ^4.6.0
+
+  # コード生成
+  injectable_generator: ^2.4.1
+  json_annotation: ^4.8.1
+  json_serializable: ^6.7.1
 
 # For information on the generic Dart part of this file, see the
 # following page: https://dart.dev/tools/pub/pubspec
