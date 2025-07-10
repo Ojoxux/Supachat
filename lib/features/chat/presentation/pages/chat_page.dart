@@ -2,18 +2,23 @@ import 'dart:async';
 import 'dart:math';
 
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:timeago/timeago.dart';
-import 'package:supabase_flutter/supabase_flutter.dart';
 
-import '../model/message.dart';
-import '../model/profile.dart';
-import '../constants.dart';
-import 'register_page.dart';
+import '../../../../constants.dart';
+import '../../domain/entities/message.dart';
+import '../../../profile/domain/entities/profile.dart';
+import '../../../profile/presentation/viewmodels/profile_viewmodel.dart';
+import '../../../profile/presentation/viewmodels/profile_state.dart';
+import '../viewmodels/chat_viewmodel.dart';
+import '../viewmodels/chat_state.dart';
+import '../../../auth/presentation/viewmodels/auth_viewmodel.dart';
+import '../../../auth/presentation/pages/register_page.dart';
 
 /// 他のユーザーとチャットができるページ
 ///
 /// モダンな白と黒を基調としたシンプルなデザインのチャット画面
-class ChatPage extends StatefulWidget {
+class ChatPage extends ConsumerStatefulWidget {
   const ChatPage({super.key});
 
   static Route<void> route() {
@@ -21,66 +26,28 @@ class ChatPage extends StatefulWidget {
   }
 
   @override
-  State<ChatPage> createState() => _ChatPageState();
+  ConsumerState<ChatPage> createState() => _ChatPageState();
 }
 
-class _ChatPageState extends State<ChatPage> {
-  /// メッセージをロードするためのストリーム
-  late final Stream<List<Message>> _messagesStream;
-
-  /// プロフィール情報をメモリー内にキャッシュしておくための変数
-  final Map<String, Profile> _profileCache = {};
-
-  /// メッセージのサブスクリプション
-  late final StreamSubscription<List<Message>> _messagesSubscription;
-
+class _ChatPageState extends ConsumerState<ChatPage> {
   @override
   void initState() {
-    final myUserId = supabase.auth.currentUser!.id;
-    _messagesStream = supabase
-        .from('messages')
-        .stream(primaryKey: ['id'])
-        .order('created_at')
-        .map(
-          (maps) =>
-              maps
-                  .map((map) => Message.fromMap(map: map, myUserId: myUserId))
-                  .toList(),
-        );
-    _messagesSubscription = _messagesStream.listen((messages) {
-      for (final message in messages) {
-        _loadProfileCache(message.profileId);
-      }
-    });
     super.initState();
-  }
-
-  @override
-  void dispose() {
-    // きちんとcancelしてメモリリークを防ぐ
-    _messagesSubscription.cancel();
-    super.dispose();
-  }
-
-  /// 特定のユーザーのプロフィール情報をロードしてキャッシュする
-  Future<void> _loadProfileCache(String profileId) async {
-    if (_profileCache[profileId] != null) {
-      return;
-    }
-    final data =
-        await supabase
-            .from('profiles')
-            .select('*')
-            .eq('id', profileId)
-            .single();
-    final profile = Profile.fromMap(data);
-    setState(() {
-      _profileCache[profileId] = profile;
+    // ChatViewModelを初期化してメッセージの監視を開始
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      final currentUserId = supabase.auth.currentUser?.id;
+      if (currentUserId != null) {
+        ref
+            .read(chatViewModelProvider.notifier)
+            .startWatchingMessages(currentUserId);
+      }
     });
   }
 
   @override
   Widget build(BuildContext context) {
+    final chatState = ref.watch(chatViewModelProvider);
+
     return Scaffold(
       backgroundColor: Colors.white,
       appBar: AppBar(
@@ -96,11 +63,15 @@ class _ChatPageState extends State<ChatPage> {
         ),
         actions: [
           TextButton.icon(
-            onPressed: () {
-              supabase.auth.signOut();
-              Navigator.of(
-                context,
-              ).pushAndRemoveUntil(RegisterPage.route(), (route) => false);
+            onPressed: () async {
+              await ref.read(authViewModelProvider.notifier).signOut();
+              if (context.mounted) {
+                unawaited(
+                  Navigator.of(
+                    context,
+                  ).pushAndRemoveUntil(RegisterPage.route(), (route) => false),
+                );
+              }
             },
             icon: const Icon(Icons.logout, color: Colors.black54, size: 20),
             label: const Text(
@@ -115,72 +86,7 @@ class _ChatPageState extends State<ChatPage> {
           // 区切り線
           Container(height: 1, color: Colors.grey[200]),
           // メッセージリスト
-          Expanded(
-            child: StreamBuilder<List<Message>>(
-              stream: _messagesStream,
-              builder: (context, snapshot) {
-                if (snapshot.hasData) {
-                  final messages = snapshot.data!;
-                  return messages.isEmpty
-                      ? const Center(
-                        child: Column(
-                          mainAxisAlignment: MainAxisAlignment.center,
-                          children: [
-                            Icon(
-                              Icons.chat_bubble_outline,
-                              size: 64,
-                              color: Colors.black12,
-                            ),
-                            SizedBox(height: 16),
-                            Text(
-                              'メッセージがありません',
-                              style: TextStyle(
-                                fontSize: 16,
-                                color: Colors.black54,
-                                fontWeight: FontWeight.w500,
-                              ),
-                            ),
-                            SizedBox(height: 8),
-                            Text(
-                              '最初のメッセージを送信してみましょう',
-                              style: TextStyle(
-                                fontSize: 14,
-                                color: Colors.black38,
-                              ),
-                            ),
-                          ],
-                        ),
-                      )
-                      : ListView.builder(
-                        reverse: true,
-                        padding: const EdgeInsets.symmetric(
-                          horizontal: 16,
-                          vertical: 8,
-                        ),
-                        itemCount: messages.length,
-                        itemBuilder: (context, index) {
-                          final message = messages[index];
-                          final profile = _profileCache[message.profileId];
-                          if (profile == null) {
-                            return const SizedBox.shrink(); // プロフィールがロードされていない場合は空のウィジェットを返す
-                          }
-                          return ModernMessageCard(
-                            message: message,
-                            profile: profile,
-                          );
-                        },
-                      );
-                } else {
-                  return const Center(
-                    child: CircularProgressIndicator(
-                      valueColor: AlwaysStoppedAnimation<Color>(Colors.black),
-                      strokeWidth: 2,
-                    ),
-                  );
-                }
-              },
-            ),
-          ),
+          Expanded(child: _buildMessagesList(chatState)),
           // 区切り線
           Container(height: 1, color: Colors.grey[200]),
           const _ModernMessageBar(),
@@ -188,17 +94,127 @@ class _ChatPageState extends State<ChatPage> {
       ),
     );
   }
+
+  Widget _buildMessagesList(ChatState chatState) {
+    if (chatState is ChatLoading) {
+      return const Center(
+        child: CircularProgressIndicator(
+          valueColor: AlwaysStoppedAnimation<Color>(Colors.black),
+          strokeWidth: 2,
+        ),
+      );
+    }
+
+    if (chatState is ChatError) {
+      return Center(
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            const Icon(Icons.error_outline, size: 64, color: Colors.red),
+            const SizedBox(height: 16),
+            const Text(
+              'エラーが発生しました',
+              style: TextStyle(
+                fontSize: 16,
+                color: Colors.black54,
+                fontWeight: FontWeight.w500,
+              ),
+            ),
+            const SizedBox(height: 8),
+            Text(
+              chatState.message,
+              style: const TextStyle(fontSize: 14, color: Colors.black38),
+            ),
+            const SizedBox(height: 16),
+            ElevatedButton(
+              onPressed: () {
+                final currentUserId = supabase.auth.currentUser?.id;
+                if (currentUserId != null) {
+                  ref
+                      .read(chatViewModelProvider.notifier)
+                      .startWatchingMessages(currentUserId);
+                }
+              },
+              style: ElevatedButton.styleFrom(
+                backgroundColor: Colors.black,
+                foregroundColor: Colors.white,
+              ),
+              child: const Text('再試行'),
+            ),
+          ],
+        ),
+      );
+    }
+
+    if (chatState is ChatLoaded) {
+      final messages = chatState.messages;
+
+      if (messages.isEmpty) {
+        return const Center(
+          child: Column(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              Icon(Icons.chat_bubble_outline, size: 64, color: Colors.black12),
+              SizedBox(height: 16),
+              Text(
+                'メッセージがありません',
+                style: TextStyle(
+                  fontSize: 16,
+                  color: Colors.black54,
+                  fontWeight: FontWeight.w500,
+                ),
+              ),
+              SizedBox(height: 8),
+              Text(
+                '最初のメッセージを送信してみましょう',
+                style: TextStyle(fontSize: 14, color: Colors.black38),
+              ),
+            ],
+          ),
+        );
+      }
+
+      return ListView.builder(
+        reverse: true,
+        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+        itemCount: messages.length,
+        itemBuilder: (context, index) {
+          final message = messages[index];
+          return Consumer(
+            builder: (context, ref, child) {
+              final profileState = ref.watch(profileViewModelProvider);
+
+              if (profileState is ProfileLoaded) {
+                final profile = profileState.profiles[message.profileId];
+
+                if (profile == null) {
+                  // プロフィールがロードされていない場合は空のウィジェットを返す
+                  return const SizedBox.shrink();
+                }
+
+                return ModernMessageCard(message: message, profile: profile);
+              }
+
+              return const SizedBox.shrink();
+            },
+          );
+        },
+      );
+    }
+
+    return const SizedBox.shrink();
+  }
 }
 
 /// モダンなメッセージ入力バー
-class _ModernMessageBar extends StatefulWidget {
+class _ModernMessageBar extends ConsumerStatefulWidget {
   const _ModernMessageBar();
 
   @override
-  State<_ModernMessageBar> createState() => _ModernMessageBarState();
+  ConsumerState<_ModernMessageBar> createState() => _ModernMessageBarState();
 }
 
-class _ModernMessageBarState extends State<_ModernMessageBar> {
+class _ModernMessageBarState extends ConsumerState<_ModernMessageBar> {
   late final TextEditingController _textController = TextEditingController();
   bool _isComposing = false;
 
@@ -214,6 +230,9 @@ class _ModernMessageBarState extends State<_ModernMessageBar> {
 
   @override
   Widget build(BuildContext context) {
+    final chatState = ref.watch(chatViewModelProvider);
+    final isSending = chatState is ChatLoading;
+
     return Container(
       color: Colors.white,
       padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
@@ -232,6 +251,7 @@ class _ModernMessageBarState extends State<_ModernMessageBar> {
                   maxLines: null,
                   textInputAction: TextInputAction.send,
                   onSubmitted: (_) => _submitMessage(),
+                  enabled: !isSending,
                   decoration: const InputDecoration(
                     hintText: 'メッセージを入力...',
                     hintStyle: TextStyle(color: Colors.black38),
@@ -247,19 +267,37 @@ class _ModernMessageBarState extends State<_ModernMessageBar> {
             ),
             const SizedBox(width: 12),
             GestureDetector(
-              onTap: _isComposing ? _submitMessage : null,
+              onTap: (_isComposing && !isSending) ? _submitMessage : null,
               child: Container(
                 width: 44,
                 height: 44,
                 decoration: BoxDecoration(
-                  color: _isComposing ? Colors.black : Colors.grey[300],
+                  color:
+                      (_isComposing && !isSending)
+                          ? Colors.black
+                          : Colors.grey[300],
                   shape: BoxShape.circle,
                 ),
-                child: Icon(
-                  Icons.send,
-                  color: _isComposing ? Colors.white : Colors.grey[600],
-                  size: 20,
-                ),
+                child:
+                    isSending
+                        ? const SizedBox(
+                          width: 20,
+                          height: 20,
+                          child: CircularProgressIndicator(
+                            strokeWidth: 2,
+                            valueColor: AlwaysStoppedAnimation<Color>(
+                              Colors.white,
+                            ),
+                          ),
+                        )
+                        : Icon(
+                          Icons.send,
+                          color:
+                              (_isComposing && !isSending)
+                                  ? Colors.white
+                                  : Colors.grey[600],
+                          size: 20,
+                        ),
               ),
             ),
           ],
@@ -277,20 +315,20 @@ class _ModernMessageBarState extends State<_ModernMessageBar> {
   /// メッセージを送信する
   void _submitMessage() async {
     final text = _textController.text.trim();
-    final myUserId = supabase.auth.currentUser!.id;
     if (text.isEmpty) {
       return;
     }
+
     _textController.clear();
-    try {
-      await supabase.from('messages').insert({
-        'profile_id': myUserId,
-        'content': text,
-      });
-    } on PostgrestException catch (error) {
-      if (mounted) context.showErrorSnackBar(message: error.message);
-    } catch (_) {
-      if (mounted) context.showErrorSnackBar(message: unexpectedErrorMessage);
+    setState(() {
+      _isComposing = false;
+    });
+
+    final currentUserId = supabase.auth.currentUser?.id;
+    if (currentUserId != null) {
+      await ref
+          .read(chatViewModelProvider.notifier)
+          .sendMessageAction(content: text, profileId: currentUserId);
     }
   }
 }

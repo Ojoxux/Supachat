@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 import 'env.dart';
-import 'pages/splash_page.dart';
+import 'features/auth/presentation/pages/splash_page.dart';
 import 'core/di/injection_container.dart';
 
 void main() async {
