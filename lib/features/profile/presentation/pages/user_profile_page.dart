@@ -190,6 +190,8 @@ class UserProfilePage extends ConsumerWidget {
                 const SizedBox(height: 16),
                 _buildInfoRow('ユーザー名', profile.username),
                 const SizedBox(height: 12),
+                _buildInfoRow('メッセージ投稿数', '${profile.messageCount}件'),
+                const SizedBox(height: 12),
                 _buildInfoRow(
                   '作成日',
                   timeago.format(profile.createdAt, locale: 'ja'),

@@ -7,6 +7,7 @@ class ProfileModel extends Profile {
     required super.id,
     required super.username,
     required super.createdAt,
+    super.messageCount = 0,
   });
 
   /// MapからProfileModelを作成
@@ -15,6 +16,7 @@ class ProfileModel extends Profile {
       id: map['id'] as String,
       username: map['username'] as String,
       createdAt: DateTime.parse(map['created_at'] as String),
+      messageCount: map['message_count'] as int? ?? 0,
     );
   }
 
@@ -24,11 +26,17 @@ class ProfileModel extends Profile {
       'id': id,
       'username': username,
       'created_at': createdAt.toIso8601String(),
+      'message_count': messageCount,
     };
   }
 
   /// ProfileModelをProfileエンティティに変換
   Profile toEntity() {
-    return Profile(id: id, username: username, createdAt: createdAt);
+    return Profile(
+      id: id,
+      username: username,
+      createdAt: createdAt,
+      messageCount: messageCount,
+    );
   }
 }

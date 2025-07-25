@@ -21,14 +21,28 @@ class ProfileRemoteDataSourceImpl implements ProfileRemoteDataSource {
   @override
   Future<ProfileModel> getProfile({required String profileId}) async {
     try {
-      final response =
-          await _client
-              .from('profiles')
-              .select('*')
-              .eq('id', profileId)
-              .single();
+      final response = await _client
+          .from('profiles')
+          .select('''
+            *,
+            message_count:messages(count)
+          ''')
+          .eq('id', profileId)
+          .single();
 
-      return ProfileModel.fromMap(response);
+      // メッセージ数を取得
+      final messageCount = response['message_count'] as List?;
+      final count = messageCount?.isNotEmpty == true 
+          ? messageCount!.first['count'] as int? ?? 0
+          : 0;
+
+      // レスポンスにメッセージ数を追加
+      final profileData = Map<String, dynamic>.from(response);
+      profileData['message_count'] = count;
+      profileData.remove('message_count'); // 元のmessage_countフィールドを削除
+      profileData['message_count'] = count; // 正しい値を設定
+
+      return ProfileModel.fromMap(profileData);
     } on PostgrestException catch (e) {
       throw ServerFailure(message: e.message);
     } catch (e) {
@@ -43,10 +57,27 @@ class ProfileRemoteDataSourceImpl implements ProfileRemoteDataSource {
     try {
       final response = await _client
           .from('profiles')
-          .select('*')
+          .select('''
+            *,
+            message_count:messages(count)
+          ''')
           .inFilter('id', profileIds);
 
-      return response.map((map) => ProfileModel.fromMap(map)).toList();
+      return response.map((map) {
+        // メッセージ数を取得
+        final messageCount = map['message_count'] as List?;
+        final count = messageCount?.isNotEmpty == true 
+            ? messageCount!.first['count'] as int? ?? 0
+            : 0;
+
+        // レスポンスにメッセージ数を追加
+        final profileData = Map<String, dynamic>.from(map);
+        profileData['message_count'] = count;
+        profileData.remove('message_count'); // 元のmessage_countフィールドを削除
+        profileData['message_count'] = count; // 正しい値を設定
+
+        return ProfileModel.fromMap(profileData);
+      }).toList();
     } on PostgrestException catch (e) {
       throw ServerFailure(message: e.message);
     } catch (e) {

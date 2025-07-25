@@ -197,6 +197,8 @@ class _ProfilePageState extends ConsumerState<ProfilePage> {
                   const SizedBox(height: 12),
                   _buildInfoRow('登録日', _formatDate(authState.user.createdAt)),
                   const SizedBox(height: 12),
+                  _buildInfoRow('メッセージ投稿数', '${profile.messageCount}件'),
+                  const SizedBox(height: 12),
                   _buildInfoRow('作成日', _formatDate(profile.createdAt)),
                 ],
               ),

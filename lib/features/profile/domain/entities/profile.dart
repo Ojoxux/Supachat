@@ -6,12 +6,14 @@ class Profile extends Equatable {
     required this.id,
     required this.username,
     required this.createdAt,
+    this.messageCount = 0,
   });
 
   final String id;
   final String username;
   final DateTime createdAt;
+  final int messageCount;
 
   @override
-  List<Object?> get props => [id, username, createdAt];
+  List<Object?> get props => [id, username, createdAt, messageCount];
 }

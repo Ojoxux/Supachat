@@ -244,6 +244,7 @@ class _ChatPageState extends ConsumerState<ChatPage> {
                       id: message.profileId,
                       username: 'Loading...',
                       createdAt: DateTime.now(),
+                      messageCount: 0,
                     ),
                   );
                 }
@@ -258,6 +259,7 @@ class _ChatPageState extends ConsumerState<ChatPage> {
                   id: message.profileId,
                   username: 'Loading...',
                   createdAt: DateTime.now(),
+                  messageCount: 0,
                 ),
               );
             },
