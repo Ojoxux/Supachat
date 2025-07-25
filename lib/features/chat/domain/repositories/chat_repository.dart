@@ -11,4 +11,7 @@ abstract class ChatRepository {
 
   /// メッセージのリアルタイム更新を監視
   Stream<List<Message>> watchMessages({required String currentUserId});
+
+  /// メッセージのいいねを切り替え
+  ResultVoid toggleLike({required String messageId, required String userId});
 }

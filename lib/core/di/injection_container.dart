@@ -15,6 +15,7 @@ import '../../features/chat/domain/repositories/chat_repository.dart';
 import '../../features/chat/domain/usecases/send_message.dart';
 import '../../features/chat/domain/usecases/get_messages.dart';
 import '../../features/chat/domain/usecases/watch_messages.dart';
+import '../../features/chat/domain/usecases/toggle_like.dart';
 import '../../features/profile/data/datasources/profile_remote_datasource.dart';
 import '../../features/profile/data/repositories/profile_repository_impl.dart';
 import '../../features/profile/domain/repositories/profile_repository.dart';
@@ -62,6 +63,7 @@ Future<void> setupDependencies() async {
   getIt.registerLazySingleton(() => SendMessage(getIt()));
   getIt.registerLazySingleton(() => GetMessages(getIt()));
   getIt.registerLazySingleton(() => WatchMessages(getIt()));
+  getIt.registerLazySingleton(() => ToggleLike(getIt()));
   getIt.registerLazySingleton(() => GetProfile(getIt()));
   getIt.registerLazySingleton(() => GetProfiles(getIt()));
 }

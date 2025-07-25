@@ -6,6 +6,7 @@ import '../../domain/entities/message.dart';
 import '../../domain/usecases/send_message.dart';
 import '../../domain/usecases/get_messages.dart';
 import '../../domain/usecases/watch_messages.dart';
+import '../../domain/usecases/toggle_like.dart';
 import '../../../profile/domain/usecases/get_profiles.dart';
 import '../../../profile/presentation/viewmodels/profile_viewmodel.dart';
 import 'chat_state.dart';
@@ -16,6 +17,7 @@ final chatViewModelProvider = StateNotifierProvider<ChatViewModel, ChatState>(
     sendMessage: getIt<SendMessage>(),
     getMessages: getIt<GetMessages>(),
     watchMessages: getIt<WatchMessages>(),
+    toggleLike: getIt<ToggleLike>(),
     getProfiles: getIt<GetProfiles>(),
     ref: ref,
   ),
@@ -27,6 +29,7 @@ class ChatViewModel extends StateNotifier<ChatState> {
     required this.sendMessage,
     required this.getMessages,
     required this.watchMessages,
+    required this.toggleLike,
     required this.getProfiles,
     required this.ref,
   }) : super(const ChatInitial());
@@ -34,6 +37,7 @@ class ChatViewModel extends StateNotifier<ChatState> {
   final SendMessage sendMessage;
   final GetMessages getMessages;
   final WatchMessages watchMessages;
+  final ToggleLike toggleLike;
   final GetProfiles getProfiles;
   final Ref ref;
 
@@ -100,6 +104,52 @@ class ChatViewModel extends StateNotifier<ChatState> {
       return currentState.messages;
     }
     return [];
+  }
+
+  /// いいねを切り替え（楽観的更新付き）
+  Future<void> toggleLikeAction({
+    required String messageId,
+    required String userId,
+  }) async {
+    // 楽観的更新: 即座にUIを更新
+    _updateMessageLikeOptimistically(messageId, userId);
+
+    final result = await toggleLike(messageId: messageId, userId: userId);
+
+    result.fold(
+      (failure) {
+        // エラーが発生した場合は元に戻す
+        _updateMessageLikeOptimistically(messageId, userId);
+        state = ChatError(
+          getErrorMessage(failure),
+          messages: _getCurrentMessages(),
+        );
+      },
+      (_) {
+        // 成功時は何もしない（リアルタイム更新で最終的な状態が反映される）
+      },
+    );
+  }
+
+  /// メッセージのいいね状態を楽観的に更新
+  void _updateMessageLikeOptimistically(String messageId, String userId) {
+    final currentMessages = _getCurrentMessages();
+    final updatedMessages = currentMessages.map((message) {
+      if (message.id == messageId) {
+        final isCurrentlyLiked = message.isLikedByMe;
+        final newLikeCount = isCurrentlyLiked 
+            ? message.likeCount - 1 
+            : message.likeCount + 1;
+        
+        return message.copyWithLike(
+          isLikedByMe: !isCurrentlyLiked,
+          likeCount: newLikeCount,
+        );
+      }
+      return message;
+    }).toList();
+
+    state = ChatLoaded(updatedMessages);
   }
 
   /// エラーをクリア

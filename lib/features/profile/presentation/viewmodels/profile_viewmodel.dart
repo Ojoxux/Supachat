@@ -26,7 +26,11 @@ class ProfileViewModel extends StateNotifier<ProfileState> {
   /// 単一のプロフィールを取得
   Future<void> loadProfile(String profileId) async {
     final currentProfiles = _getCurrentProfiles();
-    state = const ProfileLoading();
+    
+    // 既にプロフィールが存在する場合は再取得しない
+    if (currentProfiles.containsKey(profileId)) {
+      return;
+    }
 
     final result = await getProfile(profileId: profileId);
 
@@ -44,9 +48,15 @@ class ProfileViewModel extends StateNotifier<ProfileState> {
     if (profileIds.isEmpty) return;
 
     final currentProfiles = _getCurrentProfiles();
-    state = const ProfileLoading();
+    
+    // 既に存在しないプロフィールIDのみをフィルタリング
+    final missingProfileIds = profileIds
+        .where((id) => !currentProfiles.containsKey(id))
+        .toList();
+    
+    if (missingProfileIds.isEmpty) return;
 
-    final result = await getProfiles(profileIds: profileIds);
+    final result = await getProfiles(profileIds: missingProfileIds);
 
     result.fold((failure) => state = ProfileError(getErrorMessage(failure)), (
       profiles,

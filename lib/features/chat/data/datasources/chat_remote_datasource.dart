@@ -1,3 +1,4 @@
+import 'dart:async';
 import 'package:supabase_flutter/supabase_flutter.dart';
 import '../../../../core/error/failures.dart';
 import '../models/message_model.dart';
@@ -12,6 +13,8 @@ abstract class ChatRemoteDataSource {
   Future<List<MessageModel>> getMessages({required String currentUserId});
 
   Stream<List<MessageModel>> watchMessages({required String currentUserId});
+
+  Future<void> toggleLike({required String messageId, required String userId});
 }
 
 /// チャットのリモートデータソースの実装
@@ -43,7 +46,7 @@ class ChatRemoteDataSourceImpl implements ChatRemoteDataSource {
   }) async {
     try {
       final response = await _client
-          .from('messages')
+          .from('messages_with_likes')
           .select('*')
           .order('created_at', ascending: false);
 
@@ -63,21 +66,97 @@ class ChatRemoteDataSourceImpl implements ChatRemoteDataSource {
   @override
   Stream<List<MessageModel>> watchMessages({required String currentUserId}) {
     try {
-      return _client
-          .from('messages')
-          .stream(primaryKey: ['id'])
-          .order('created_at', ascending: false)
-          .map(
-            (maps) =>
-                maps
-                    .map(
-                      (map) => MessageModel.fromMap(
-                        map: map,
-                        currentUserId: currentUserId,
-                      ),
-                    )
-                    .toList(),
-          );
+      late StreamController<List<MessageModel>> controller;
+      StreamSubscription? messagesSubscription;
+      StreamSubscription? likesSubscription;
+      
+      Future<void> fetchAndEmitMessages() async {
+        try {
+          final messages = await getMessages(currentUserId: currentUserId);
+          if (!controller.isClosed) {
+            controller.add(messages);
+          }
+        } catch (e) {
+          if (!controller.isClosed) {
+            controller.addError(e);
+          }
+        }
+      }
+      
+      controller = StreamController<List<MessageModel>>(
+        onListen: () {
+          // 初回データ取得
+          fetchAndEmitMessages();
+          
+          // messagesテーブルの変更を監視
+           messagesSubscription = _client
+               .from('messages')
+               .stream(primaryKey: ['id'])
+               .listen(
+                 (_) => fetchAndEmitMessages(),
+                 onError: (Object error) {
+                   if (!controller.isClosed) {
+                     controller.addError(error);
+                   }
+                 },
+               );
+           
+           // message_likesテーブルの変更を監視
+           likesSubscription = _client
+               .from('message_likes')
+               .stream(primaryKey: ['id'])
+               .listen(
+                 (_) => fetchAndEmitMessages(),
+                 onError: (Object error) {
+                   if (!controller.isClosed) {
+                     controller.addError(error);
+                   }
+                 },
+               );
+        },
+        onCancel: () {
+          messagesSubscription?.cancel();
+          likesSubscription?.cancel();
+        },
+      );
+      
+      return controller.stream;
+    } catch (e) {
+      throw ServerFailure(message: e.toString());
+    }
+  }
+
+  @override
+  Future<void> toggleLike({
+    required String messageId,
+    required String userId,
+  }) async {
+    try {
+      // 既存のいいねを確認
+      final existingLike =
+          await _client
+              .from('message_likes')
+              .select('id')
+              .eq('message_id', messageId)
+              .eq('user_id', userId)
+              .maybeSingle();
+
+      if (existingLike != null) {
+        // いいねを削除
+        await _client
+            .from('message_likes')
+            .delete()
+            .eq('message_id', messageId)
+            .eq('user_id', userId);
+      } else {
+        // いいねを追加
+        await _client.from('message_likes').insert({
+          'message_id': messageId,
+          'user_id': userId,
+        });
+      }
+    } on PostgrestException catch (e) {
+      throw ServerFailure(message: e.message);
     } catch (e) {
       throw ServerFailure(message: e.toString());
     }
