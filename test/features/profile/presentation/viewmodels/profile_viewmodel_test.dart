@@ -66,18 +66,20 @@ void main() {
     group('loadProfile', () {
       test('プロフィール読み込み開始時はProfileLoading状態になる', () async {
         // Arrange
-        when(mockGetProfile(profileId: testProfileId)).thenAnswer((_) async {
+        when(
+          mockGetProfile(profileId: testProfileId),
+        ).thenAnswer((_) async {
           await Future<void>.delayed(const Duration(milliseconds: 10));
           return Right(testProfile1);
         });
 
         // Act
-        final future = profileViewModel.loadProfile(testProfileId);
+        await profileViewModel.loadProfile(testProfileId);
 
-        // Assert - ローディング状態を確認
-        expect(profileViewModel.state, isA<ProfileLoading>());
-
-        await future;
+        // Assert - 初期状態から読み込み後はProfileLoaded状態になる
+        expect(profileViewModel.state, isA<ProfileLoaded>());
+        final loadedState = profileViewModel.state as ProfileLoaded;
+        expect(loadedState.profiles[testProfileId], equals(testProfile1));
       });
 
       test('プロフィール読み込み成功時はProfileLoaded状態になる', () async {
@@ -117,7 +119,7 @@ void main() {
         expect(loadedState.profiles[testProfile2.id], equals(testProfile2));
       });
 
-      test('同じプロフィールIDの場合、既存のプロフィールが更新される', () async {
+      test('同じプロフィールIDの場合、既存のプロフィールは再取得されない', () async {
         // Arrange - 既存のプロフィールを設定
         final Map<String, Profile> existingProfiles = {
           testProfile1.id: testProfile1,
@@ -137,15 +139,18 @@ void main() {
         // Act
         await profileViewModel.loadProfile(testProfileId);
 
-        // Assert
+        // Assert - 既存のプロフィールがそのまま残る（再取得されない）
         expect(profileViewModel.state, isA<ProfileLoaded>());
         final loadedState = profileViewModel.state as ProfileLoaded;
         expect(loadedState.profiles.length, equals(1));
-        expect(loadedState.profiles[testProfileId], equals(updatedProfile));
+        expect(loadedState.profiles[testProfileId], equals(testProfile1));
         expect(
           loadedState.profiles[testProfileId]!.username,
-          equals('updated_user'),
+          equals('user1'),
         );
+        
+        // GetProfileが呼ばれていないことを確認
+        verifyNever(mockGetProfile(profileId: testProfileId));
       });
 
       test('プロフィール読み込み失敗時はProfileError状態になる', () async {
@@ -177,7 +182,7 @@ void main() {
         expect(profileViewModel.state, isA<ProfileInitial>());
       });
 
-      test('プロフィール読み込み開始時はProfileLoading状態になる', () async {
+      test('初期状態からプロフィール読み込み開始時はProfileLoaded状態になる', () async {
         // Arrange
         when(mockGetProfiles(profileIds: testProfileIds)).thenAnswer((_) async {
           await Future<void>.delayed(const Duration(milliseconds: 10));
@@ -185,12 +190,12 @@ void main() {
         });
 
         // Act
-        final future = profileViewModel.loadProfiles(testProfileIds);
+        await profileViewModel.loadProfiles(testProfileIds);
 
-        // Assert - ローディング状態を確認
-        expect(profileViewModel.state, isA<ProfileLoading>());
-
-        await future;
+        // Assert - 初期状態から読み込み後はProfileLoaded状態になる
+        expect(profileViewModel.state, isA<ProfileLoaded>());
+        final loadedState = profileViewModel.state as ProfileLoaded;
+        expect(loadedState.profiles.length, equals(3));
       });
 
       test('複数プロフィール読み込み成功時はProfileLoaded状態になる', () async {
@@ -211,7 +216,7 @@ void main() {
         expect(loadedState.profiles[testProfile3.id], equals(testProfile3));
       });
 
-      test('既存のプロフィールがある場合、新しいプロフィールが追加される', () async {
+      test('既存のプロフィールがある場合、新しいプロフィールが追加される（Loading状態にならない）', () async {
         // Arrange - 既存のプロフィールを設定
         final existingProfile = Profile(
           id: 'existing-profile',
@@ -230,7 +235,7 @@ void main() {
         // Act
         await profileViewModel.loadProfiles(testProfileIds);
 
-        // Assert
+        // Assert - Loading状態にならずに直接ProfileLoaded状態になる
         expect(profileViewModel.state, isA<ProfileLoaded>());
         final loadedState = profileViewModel.state as ProfileLoaded;
         expect(loadedState.profiles.length, equals(4));

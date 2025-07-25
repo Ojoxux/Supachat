@@ -67,8 +67,8 @@ class ChatRemoteDataSourceImpl implements ChatRemoteDataSource {
   Stream<List<MessageModel>> watchMessages({required String currentUserId}) {
     try {
       late StreamController<List<MessageModel>> controller;
-      StreamSubscription? messagesSubscription;
-      StreamSubscription? likesSubscription;
+      StreamSubscription<List<Map<String, dynamic>>>? messagesSubscription;
+      StreamSubscription<List<Map<String, dynamic>>>? likesSubscription;
       
       Future<void> fetchAndEmitMessages() async {
         try {
@@ -117,6 +117,7 @@ class ChatRemoteDataSourceImpl implements ChatRemoteDataSource {
         onCancel: () {
           messagesSubscription?.cancel();
           likesSubscription?.cancel();
+          controller.close();
         },
       );
       
