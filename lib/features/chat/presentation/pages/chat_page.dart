@@ -31,10 +31,14 @@ class ChatPage extends ConsumerStatefulWidget {
 
 class _ChatPageState extends ConsumerState<ChatPage> {
   final ScrollController _scrollController = ScrollController();
+  int _previousMessageCount = 0;
+  bool _shouldAutoScroll = true;
 
   @override
   void initState() {
     super.initState();
+    // スクロールリスナーを追加
+    _scrollController.addListener(_onScroll);
     // ChatViewModelを初期化してメッセージの監視を開始
     WidgetsBinding.instance.addPostFrameCallback((_) {
       final currentUserId = supabase.auth.currentUser?.id;
@@ -44,6 +48,20 @@ class _ChatPageState extends ConsumerState<ChatPage> {
             .startWatchingMessages(currentUserId);
       }
     });
+  }
+
+  /// スクロール位置を監視して自動スクロールの有効/無効を切り替え
+  void _onScroll() {
+    if (_scrollController.hasClients) {
+      final isAtBottom =
+          _scrollController.position.pixels >=
+          _scrollController.position.maxScrollExtent - 100;
+      if (_shouldAutoScroll != isAtBottom) {
+        setState(() {
+          _shouldAutoScroll = isAtBottom;
+        });
+      }
+    }
   }
 
   @override
@@ -193,9 +211,12 @@ class _ChatPageState extends ConsumerState<ChatPage> {
         );
       }
 
-      // 新しいメッセージが追加されたときに自動スクロール
+      // 新しいメッセージが追加されたときのみ自動スクロール
       WidgetsBinding.instance.addPostFrameCallback((_) {
-        _scrollToBottom();
+        if (messages.length > _previousMessageCount && _shouldAutoScroll) {
+          _scrollToBottom();
+        }
+        _previousMessageCount = messages.length;
       });
 
       return ListView.builder(
@@ -249,6 +270,60 @@ class _ChatPageState extends ConsumerState<ChatPage> {
     }
 
     return const SizedBox.shrink();
+  }
+}
+
+/// いいねボタンウィジェット
+class _LikeButton extends ConsumerWidget {
+  const _LikeButton({required this.message, required this.alignment});
+
+  final Message message;
+  final MainAxisAlignment alignment;
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    return Row(
+      mainAxisAlignment: alignment,
+      children: [
+        GestureDetector(
+          onTap: () {
+            final currentUserId = supabase.auth.currentUser?.id;
+            if (currentUserId != null) {
+              ref
+                  .read(chatViewModelProvider.notifier)
+                  .toggleLikeAction(
+                    messageId: message.id,
+                    userId: currentUserId,
+                  );
+            }
+          },
+          child: Container(
+            padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+            child: Row(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                Icon(
+                  message.isLikedByMe ? Icons.favorite : Icons.favorite_border,
+                  size: 16,
+                  color: message.isLikedByMe ? Colors.pink : Colors.grey[600],
+                ),
+                if (message.likeCount > 0) ...[
+                  const SizedBox(width: 4),
+                  Text(
+                    message.likeCount.toString(),
+                    style: TextStyle(
+                      fontSize: 12,
+                      color: Colors.grey[600],
+                      fontWeight: FontWeight.w500,
+                    ),
+                  ),
+                ],
+              ],
+            ),
+          ),
+        ),
+      ],
+    );
   }
 }
 
@@ -380,7 +455,10 @@ class _ModernMessageBarState extends ConsumerState<_ModernMessageBar> {
       WidgetsBinding.instance.addPostFrameCallback((_) {
         // 親のスクロールコントローラーにアクセスするため、contextを使用
         final chatPageState = context.findAncestorStateOfType<_ChatPageState>();
-        chatPageState?._scrollToBottom();
+        if (chatPageState != null) {
+          chatPageState._shouldAutoScroll = true;
+          chatPageState._scrollToBottom();
+        }
       });
     }
   }
@@ -452,6 +530,12 @@ class ModernMessageCard extends StatelessWidget {
                               height: 1.4,
                             ),
                           ),
+                        ),
+                        const SizedBox(height: 4),
+                        // いいねボタン（自分のメッセージ用）
+                        _LikeButton(
+                          message: message,
+                          alignment: MainAxisAlignment.end,
                         ),
                       ],
                     ),
@@ -547,6 +631,12 @@ class ModernMessageCard extends StatelessWidget {
                               height: 1.4,
                             ),
                           ),
+                        ),
+                        const SizedBox(height: 4),
+                        // いいねボタン（他のユーザーのメッセージ用）
+                        _LikeButton(
+                          message: message,
+                          alignment: MainAxisAlignment.start,
                         ),
                       ],
                     ),

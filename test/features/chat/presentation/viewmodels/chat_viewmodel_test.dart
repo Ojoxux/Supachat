@@ -10,6 +10,7 @@ import 'package:flutter_and_supabase_chat_app/features/chat/domain/entities/mess
 import 'package:flutter_and_supabase_chat_app/features/chat/domain/usecases/send_message.dart';
 import 'package:flutter_and_supabase_chat_app/features/chat/domain/usecases/get_messages.dart';
 import 'package:flutter_and_supabase_chat_app/features/chat/domain/usecases/watch_messages.dart';
+import 'package:flutter_and_supabase_chat_app/features/chat/domain/usecases/toggle_like.dart';
 import 'package:flutter_and_supabase_chat_app/features/chat/presentation/viewmodels/chat_viewmodel.dart';
 import 'package:flutter_and_supabase_chat_app/features/chat/presentation/viewmodels/chat_state.dart';
 import 'package:flutter_and_supabase_chat_app/features/profile/domain/usecases/get_profiles.dart';
@@ -22,6 +23,7 @@ import 'chat_viewmodel_test.mocks.dart';
   SendMessage,
   GetMessages,
   WatchMessages,
+  ToggleLike,
   GetProfiles,
   Ref,
   ProfileViewModel,
@@ -33,6 +35,7 @@ void main() {
     late MockSendMessage mockSendMessage;
     late MockGetMessages mockGetMessages;
     late MockWatchMessages mockWatchMessages;
+    late MockToggleLike mockToggleLike;
     late MockGetProfiles mockGetProfiles;
     late MockRef mockRef;
     late StreamController<List<Message>> messagesStreamController;
@@ -64,6 +67,7 @@ void main() {
       mockSendMessage = MockSendMessage();
       mockGetMessages = MockGetMessages();
       mockWatchMessages = MockWatchMessages();
+      mockToggleLike = MockToggleLike();
       mockGetProfiles = MockGetProfiles();
       mockRef = MockRef();
       messagesStreamController = StreamController<List<Message>>();
@@ -77,6 +81,7 @@ void main() {
         sendMessage: mockSendMessage,
         getMessages: mockGetMessages,
         watchMessages: mockWatchMessages,
+        toggleLike: mockToggleLike,
         getProfiles: mockGetProfiles,
         ref: mockRef,
       );

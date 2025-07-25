@@ -8,6 +8,8 @@ class Message extends Equatable {
     required this.content,
     required this.createdAt,
     required this.isMine,
+    this.likeCount = 0,
+    this.isLikedByMe = false,
   });
 
   final String id;
@@ -15,7 +17,30 @@ class Message extends Equatable {
   final String content;
   final DateTime createdAt;
   final bool isMine;
+  final int likeCount;
+  final bool isLikedByMe;
+
+  /// いいね状態を更新した新しいMessageインスタンスを作成
+  Message copyWithLike({required int likeCount, required bool isLikedByMe}) {
+    return Message(
+      id: id,
+      profileId: profileId,
+      content: content,
+      createdAt: createdAt,
+      isMine: isMine,
+      likeCount: likeCount,
+      isLikedByMe: isLikedByMe,
+    );
+  }
 
   @override
-  List<Object?> get props => [id, profileId, content, createdAt, isMine];
+  List<Object?> get props => [
+    id,
+    profileId,
+    content,
+    createdAt,
+    isMine,
+    likeCount,
+    isLikedByMe,
+  ];
 }

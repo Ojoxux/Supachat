@@ -9,6 +9,8 @@ class MessageModel extends Message {
     required super.content,
     required super.createdAt,
     required super.isMine,
+    super.likeCount = 0,
+    super.isLikedByMe = false,
   });
 
   /// MapからMessageModelを作成
@@ -22,6 +24,8 @@ class MessageModel extends Message {
       content: map['content'] as String,
       createdAt: DateTime.parse(map['created_at'] as String),
       isMine: currentUserId == map['profile_id'],
+      likeCount: map['like_count'] as int? ?? 0,
+      isLikedByMe: map['is_liked_by_me'] as bool? ?? false,
     );
   }
 
@@ -43,6 +47,8 @@ class MessageModel extends Message {
       content: content,
       createdAt: createdAt,
       isMine: isMine,
+      likeCount: likeCount,
+      isLikedByMe: isLikedByMe,
     );
   }
 }

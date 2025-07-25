@@ -13,10 +13,12 @@ import 'package:flutter_and_supabase_chat_app/features/chat/domain/usecases/get_
     as _i10;
 import 'package:flutter_and_supabase_chat_app/features/chat/domain/usecases/send_message.dart'
     as _i7;
+import 'package:flutter_and_supabase_chat_app/features/chat/domain/usecases/toggle_like.dart'
+    as _i13;
 import 'package:flutter_and_supabase_chat_app/features/chat/domain/usecases/watch_messages.dart'
     as _i12;
 import 'package:flutter_and_supabase_chat_app/features/profile/domain/entities/profile.dart'
-    as _i13;
+    as _i14;
 import 'package:flutter_and_supabase_chat_app/features/profile/domain/usecases/get_profile.dart'
     as _i4;
 import 'package:flutter_and_supabase_chat_app/features/profile/domain/usecases/get_profiles.dart'
@@ -24,11 +26,11 @@ import 'package:flutter_and_supabase_chat_app/features/profile/domain/usecases/g
 import 'package:flutter_and_supabase_chat_app/features/profile/presentation/viewmodels/profile_state.dart'
     as _i6;
 import 'package:flutter_and_supabase_chat_app/features/profile/presentation/viewmodels/profile_viewmodel.dart'
-    as _i15;
+    as _i16;
 import 'package:mockito/mockito.dart' as _i1;
-import 'package:mockito/src/dummies.dart' as _i14;
+import 'package:mockito/src/dummies.dart' as _i15;
 import 'package:riverpod/src/internals.dart' as _i3;
-import 'package:state_notifier/state_notifier.dart' as _i16;
+import 'package:state_notifier/state_notifier.dart' as _i17;
 
 // ignore_for_file: type=lint
 // ignore_for_file: avoid_redundant_argument_values
@@ -156,6 +158,37 @@ class MockWatchMessages extends _i1.Mock implements _i12.WatchMessages {
           as _i8.Stream<List<_i11.Message>>);
 }
 
+/// A class which mocks [ToggleLike].
+///
+/// See the documentation for Mockito's code generation for more information.
+class MockToggleLike extends _i1.Mock implements _i13.ToggleLike {
+  MockToggleLike() {
+    _i1.throwOnMissingStub(this);
+  }
+
+  @override
+  _i8.Future<_i2.Either<_i9.Failure, void>> call({
+    required String? messageId,
+    required String? userId,
+  }) =>
+      (super.noSuchMethod(
+            Invocation.method(#call, [], {
+              #messageId: messageId,
+              #userId: userId,
+            }),
+            returnValue: _i8.Future<_i2.Either<_i9.Failure, void>>.value(
+              _FakeEither_0<_i9.Failure, void>(
+                this,
+                Invocation.method(#call, [], {
+                  #messageId: messageId,
+                  #userId: userId,
+                }),
+              ),
+            ),
+          )
+          as _i8.Future<_i2.Either<_i9.Failure, void>>);
+}
+
 /// A class which mocks [GetProfiles].
 ///
 /// See the documentation for Mockito's code generation for more information.
@@ -165,20 +198,20 @@ class MockGetProfiles extends _i1.Mock implements _i5.GetProfiles {
   }
 
   @override
-  _i8.Future<_i2.Either<_i9.Failure, List<_i13.Profile>>> call({
+  _i8.Future<_i2.Either<_i9.Failure, List<_i14.Profile>>> call({
     required List<String>? profileIds,
   }) =>
       (super.noSuchMethod(
             Invocation.method(#call, [], {#profileIds: profileIds}),
             returnValue:
-                _i8.Future<_i2.Either<_i9.Failure, List<_i13.Profile>>>.value(
-                  _FakeEither_0<_i9.Failure, List<_i13.Profile>>(
+                _i8.Future<_i2.Either<_i9.Failure, List<_i14.Profile>>>.value(
+                  _FakeEither_0<_i9.Failure, List<_i14.Profile>>(
                     this,
                     Invocation.method(#call, [], {#profileIds: profileIds}),
                   ),
                 ),
           )
-          as _i8.Future<_i2.Either<_i9.Failure, List<_i13.Profile>>>);
+          as _i8.Future<_i2.Either<_i9.Failure, List<_i14.Profile>>>);
 }
 
 /// A class which mocks [Ref].
@@ -205,7 +238,7 @@ class MockRef<State extends Object?> extends _i1.Mock
   T refresh<T>(_i3.Refreshable<T>? provider) =>
       (super.noSuchMethod(
             Invocation.method(#refresh, [provider]),
-            returnValue: _i14.dummyValue<T>(
+            returnValue: _i15.dummyValue<T>(
               this,
               Invocation.method(#refresh, [provider]),
             ),
@@ -273,7 +306,7 @@ class MockRef<State extends Object?> extends _i1.Mock
   T read<T>(_i3.ProviderListenable<T>? provider) =>
       (super.noSuchMethod(
             Invocation.method(#read, [provider]),
-            returnValue: _i14.dummyValue<T>(
+            returnValue: _i15.dummyValue<T>(
               this,
               Invocation.method(#read, [provider]),
             ),
@@ -292,7 +325,7 @@ class MockRef<State extends Object?> extends _i1.Mock
   T watch<T>(_i3.ProviderListenable<T>? provider) =>
       (super.noSuchMethod(
             Invocation.method(#watch, [provider]),
-            returnValue: _i14.dummyValue<T>(
+            returnValue: _i15.dummyValue<T>(
               this,
               Invocation.method(#watch, [provider]),
             ),
@@ -338,7 +371,7 @@ class MockRef<State extends Object?> extends _i1.Mock
 /// A class which mocks [ProfileViewModel].
 ///
 /// See the documentation for Mockito's code generation for more information.
-class MockProfileViewModel extends _i1.Mock implements _i15.ProfileViewModel {
+class MockProfileViewModel extends _i1.Mock implements _i16.ProfileViewModel {
   MockProfileViewModel() {
     _i1.throwOnMissingStub(this);
   }
@@ -403,7 +436,7 @@ class MockProfileViewModel extends _i1.Mock implements _i15.ProfileViewModel {
           as bool);
 
   @override
-  set onError(_i16.ErrorListener? _onError) => super.noSuchMethod(
+  set onError(_i17.ErrorListener? _onError) => super.noSuchMethod(
     Invocation.setter(#onError, _onError),
     returnValueForMissingStub: null,
   );
@@ -433,9 +466,9 @@ class MockProfileViewModel extends _i1.Mock implements _i15.ProfileViewModel {
           as _i8.Future<void>);
 
   @override
-  _i13.Profile? getProfileById(String? profileId) =>
+  _i14.Profile? getProfileById(String? profileId) =>
       (super.noSuchMethod(Invocation.method(#getProfileById, [profileId]))
-          as _i13.Profile?);
+          as _i14.Profile?);
 
   @override
   void clearError() => super.noSuchMethod(
@@ -452,8 +485,8 @@ class MockProfileViewModel extends _i1.Mock implements _i15.ProfileViewModel {
           as bool);
 
   @override
-  _i16.RemoveListener addListener(
-    _i16.Listener<_i6.ProfileState>? listener, {
+  _i17.RemoveListener addListener(
+    _i17.Listener<_i6.ProfileState>? listener, {
     bool? fireImmediately = true,
   }) =>
       (super.noSuchMethod(
@@ -464,7 +497,7 @@ class MockProfileViewModel extends _i1.Mock implements _i15.ProfileViewModel {
             ),
             returnValue: () {},
           )
-          as _i16.RemoveListener);
+          as _i17.RemoveListener);
 
   @override
   void dispose() => super.noSuchMethod(

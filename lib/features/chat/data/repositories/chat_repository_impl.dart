@@ -66,4 +66,24 @@ class ChatRepositoryImpl implements ChatRepository {
         .watchMessages(currentUserId: currentUserId)
         .map((models) => models.map((model) => model.toEntity()).toList());
   }
+
+  @override
+  ResultVoid toggleLike({
+    required String messageId,
+    required String userId,
+  }) async {
+    try {
+      if (!await networkInfo.isConnected) {
+        return const Left(NetworkFailure(message: 'ネットワークに接続されていません'));
+      }
+
+      await remoteDataSource.toggleLike(messageId: messageId, userId: userId);
+
+      return const Right(null);
+    } on ServerFailure catch (failure) {
+      return Left(failure);
+    } catch (e) {
+      return Left(ServerFailure(message: e.toString()));
+    }
+  }
 }
