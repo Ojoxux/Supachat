@@ -69,7 +69,7 @@ class ChatRemoteDataSourceImpl implements ChatRemoteDataSource {
       late StreamController<List<MessageModel>> controller;
       StreamSubscription<List<Map<String, dynamic>>>? messagesSubscription;
       StreamSubscription<List<Map<String, dynamic>>>? likesSubscription;
-      
+
       Future<void> fetchAndEmitMessages() async {
         try {
           final messages = await getMessages(currentUserId: currentUserId);
@@ -82,37 +82,37 @@ class ChatRemoteDataSourceImpl implements ChatRemoteDataSource {
           }
         }
       }
-      
+
       controller = StreamController<List<MessageModel>>(
         onListen: () {
           // 初回データ取得
           fetchAndEmitMessages();
-          
+
           // messagesテーブルの変更を監視
-           messagesSubscription = _client
-               .from('messages')
-               .stream(primaryKey: ['id'])
-               .listen(
-                 (_) => fetchAndEmitMessages(),
-                 onError: (Object error) {
-                   if (!controller.isClosed) {
-                     controller.addError(error);
-                   }
-                 },
-               );
-           
-           // message_likesテーブルの変更を監視
-           likesSubscription = _client
-               .from('message_likes')
-               .stream(primaryKey: ['id'])
-               .listen(
-                 (_) => fetchAndEmitMessages(),
-                 onError: (Object error) {
-                   if (!controller.isClosed) {
-                     controller.addError(error);
-                   }
-                 },
-               );
+          messagesSubscription = _client
+              .from('messages')
+              .stream(primaryKey: ['id'])
+              .listen(
+                (_) => fetchAndEmitMessages(),
+                onError: (Object error) {
+                  if (!controller.isClosed) {
+                    controller.addError(error);
+                  }
+                },
+              );
+
+          // message_likesテーブルの変更を監視
+          likesSubscription = _client
+              .from('message_likes')
+              .stream(primaryKey: ['id'])
+              .listen(
+                (_) => fetchAndEmitMessages(),
+                onError: (Object error) {
+                  if (!controller.isClosed) {
+                    controller.addError(error);
+                  }
+                },
+              );
         },
         onCancel: () {
           messagesSubscription?.cancel();
@@ -120,7 +120,7 @@ class ChatRemoteDataSourceImpl implements ChatRemoteDataSource {
           controller.close();
         },
       );
-      
+
       return controller.stream;
     } catch (e) {
       throw ServerFailure(message: e.toString());

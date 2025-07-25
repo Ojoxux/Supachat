@@ -134,20 +134,22 @@ class ChatViewModel extends StateNotifier<ChatState> {
   /// メッセージのいいね状態を楽観的に更新
   void _updateMessageLikeOptimistically(String messageId, String userId) {
     final currentMessages = _getCurrentMessages();
-    final updatedMessages = currentMessages.map((message) {
-      if (message.id == messageId) {
-        final isCurrentlyLiked = message.isLikedByMe;
-        final newLikeCount = isCurrentlyLiked 
-            ? message.likeCount - 1 
-            : message.likeCount + 1;
-        
-        return message.copyWithLike(
-          isLikedByMe: !isCurrentlyLiked,
-          likeCount: newLikeCount,
-        );
-      }
-      return message;
-    }).toList();
+    final updatedMessages =
+        currentMessages.map((message) {
+          if (message.id == messageId) {
+            final isCurrentlyLiked = message.isLikedByMe;
+            final newLikeCount =
+                isCurrentlyLiked
+                    ? message.likeCount - 1
+                    : message.likeCount + 1;
+
+            return message.copyWithLike(
+              isLikedByMe: !isCurrentlyLiked,
+              likeCount: newLikeCount,
+            );
+          }
+          return message;
+        }).toList();
 
     state = ChatLoaded(updatedMessages);
   }

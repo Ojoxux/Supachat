@@ -53,7 +53,8 @@ class _ChatPageState extends ConsumerState<ChatPage> {
   /// スクロール位置を監視して自動スクロールの有効/無効を切り替え
   void _onScroll() {
     if (_scrollController.hasClients) {
-      final isAtBottom = _scrollController.position.pixels >= 
+      final isAtBottom =
+          _scrollController.position.pixels >=
           _scrollController.position.maxScrollExtent - 100;
       if (_shouldAutoScroll != isAtBottom) {
         setState(() {

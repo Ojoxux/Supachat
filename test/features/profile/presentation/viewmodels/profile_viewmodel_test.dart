@@ -66,9 +66,7 @@ void main() {
     group('loadProfile', () {
       test('プロフィール読み込み開始時はProfileLoading状態になる', () async {
         // Arrange
-        when(
-          mockGetProfile(profileId: testProfileId),
-        ).thenAnswer((_) async {
+        when(mockGetProfile(profileId: testProfileId)).thenAnswer((_) async {
           await Future<void>.delayed(const Duration(milliseconds: 10));
           return Right(testProfile1);
         });
@@ -144,11 +142,8 @@ void main() {
         final loadedState = profileViewModel.state as ProfileLoaded;
         expect(loadedState.profiles.length, equals(1));
         expect(loadedState.profiles[testProfileId], equals(testProfile1));
-        expect(
-          loadedState.profiles[testProfileId]!.username,
-          equals('user1'),
-        );
-        
+        expect(loadedState.profiles[testProfileId]!.username, equals('user1'));
+
         // GetProfileが呼ばれていないことを確認
         verifyNever(mockGetProfile(profileId: testProfileId));
       });
