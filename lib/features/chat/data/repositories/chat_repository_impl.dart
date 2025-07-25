@@ -86,4 +86,27 @@ class ChatRepositoryImpl implements ChatRepository {
       return Left(ServerFailure(message: e.toString()));
     }
   }
+
+  @override
+  ResultVoid editMessage({
+    required String messageId,
+    required String newContent,
+  }) async {
+    try {
+      if (!await networkInfo.isConnected) {
+        return const Left(NetworkFailure(message: 'ネットワークに接続されていません'));
+      }
+
+      await remoteDataSource.editMessage(
+        messageId: messageId,
+        newContent: newContent,
+      );
+
+      return const Right(null);
+    } on ServerFailure catch (failure) {
+      return Left(failure);
+    } catch (e) {
+      return Left(ServerFailure(message: e.toString()));
+    }
+  }
 }

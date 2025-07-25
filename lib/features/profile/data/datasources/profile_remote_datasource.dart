@@ -21,20 +21,22 @@ class ProfileRemoteDataSourceImpl implements ProfileRemoteDataSource {
   @override
   Future<ProfileModel> getProfile({required String profileId}) async {
     try {
-      final response = await _client
-          .from('profiles')
-          .select('''
+      final response =
+          await _client
+              .from('profiles')
+              .select('''
             *,
             message_count:messages(count)
           ''')
-          .eq('id', profileId)
-          .single();
+              .eq('id', profileId)
+              .single();
 
       // メッセージ数を取得
       final messageCount = response['message_count'] as List?;
-      final count = messageCount?.isNotEmpty == true 
-          ? messageCount!.first['count'] as int? ?? 0
-          : 0;
+      final count =
+          (messageCount?.isNotEmpty ?? false)
+              ? messageCount!.first['count'] as int? ?? 0
+              : 0;
 
       // レスポンスにメッセージ数を追加
       final profileData = Map<String, dynamic>.from(response);
@@ -66,9 +68,10 @@ class ProfileRemoteDataSourceImpl implements ProfileRemoteDataSource {
       return response.map((map) {
         // メッセージ数を取得
         final messageCount = map['message_count'] as List?;
-        final count = messageCount?.isNotEmpty == true 
-            ? messageCount!.first['count'] as int? ?? 0
-            : 0;
+        final count =
+            (messageCount?.isNotEmpty ?? false)
+                ? messageCount!.first['count'] as int? ?? 0
+                : 0;
 
         // レスポンスにメッセージ数を追加
         final profileData = Map<String, dynamic>.from(map);

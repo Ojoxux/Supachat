@@ -15,6 +15,11 @@ abstract class ChatRemoteDataSource {
   Stream<List<MessageModel>> watchMessages({required String currentUserId});
 
   Future<void> toggleLike({required String messageId, required String userId});
+
+  Future<void> editMessage({
+    required String messageId,
+    required String newContent,
+  });
 }
 
 /// チャットのリモートデータソースの実装
@@ -156,6 +161,23 @@ class ChatRemoteDataSourceImpl implements ChatRemoteDataSource {
           'user_id': userId,
         });
       }
+    } on PostgrestException catch (e) {
+      throw ServerFailure(message: e.message);
+    } catch (e) {
+      throw ServerFailure(message: e.toString());
+    }
+  }
+
+  @override
+  Future<void> editMessage({
+    required String messageId,
+    required String newContent,
+  }) async {
+    try {
+      await _client
+          .from('messages')
+          .update({'content': newContent})
+          .eq('id', messageId);
     } on PostgrestException catch (e) {
       throw ServerFailure(message: e.message);
     } catch (e) {
