@@ -1,4 +1,3 @@
-import 'dart:async';
 import 'dart:math';
 
 import 'package:flutter/material.dart';
@@ -12,8 +11,8 @@ import '../../../profile/presentation/viewmodels/profile_viewmodel.dart';
 import '../../../profile/presentation/viewmodels/profile_state.dart';
 import '../viewmodels/chat_viewmodel.dart';
 import '../viewmodels/chat_state.dart';
-import '../../../auth/presentation/viewmodels/auth_viewmodel.dart';
-import '../../../auth/presentation/pages/register_page.dart';
+import '../../../profile/presentation/pages/profile_page.dart';
+import '../../../profile/presentation/pages/user_profile_page.dart';
 
 /// 他のユーザーとチャットができるページ
 ///
@@ -90,6 +89,23 @@ class _ChatPageState extends ConsumerState<ChatPage> {
       appBar: AppBar(
         backgroundColor: Colors.white,
         elevation: 0,
+        leading: Padding(
+          padding: const EdgeInsets.only(left: 16),
+          child: IconButton(
+            onPressed: () {
+              Navigator.of(context).push(ProfilePage.route());
+            },
+            icon: Container(
+              width: 36,
+              height: 36,
+              decoration: const BoxDecoration(
+                color: Colors.black,
+                shape: BoxShape.circle,
+              ),
+              child: const Icon(Icons.person, color: Colors.white, size: 20),
+            ),
+          ),
+        ),
         title: const Text(
           'チャット',
           style: TextStyle(
@@ -98,25 +114,6 @@ class _ChatPageState extends ConsumerState<ChatPage> {
             fontWeight: FontWeight.w600,
           ),
         ),
-        actions: [
-          TextButton.icon(
-            onPressed: () async {
-              await ref.read(authViewModelProvider.notifier).signOut();
-              if (context.mounted) {
-                unawaited(
-                  Navigator.of(
-                    context,
-                  ).pushAndRemoveUntil(RegisterPage.route(), (route) => false),
-                );
-              }
-            },
-            icon: const Icon(Icons.logout, color: Colors.black54, size: 20),
-            label: const Text(
-              'ログアウト',
-              style: TextStyle(color: Colors.black54, fontSize: 14),
-            ),
-          ),
-        ],
       ),
       body: Column(
         children: [
@@ -565,22 +562,29 @@ class ModernMessageCard extends StatelessWidget {
                 ]
                 : [
                   // 他のユーザーのメッセージは左揃え
-                  Container(
-                    width: 40,
-                    height: 40,
-                    decoration: BoxDecoration(
-                      color: Colors.grey[200],
-                      shape: BoxShape.circle,
-                    ),
-                    child: Center(
-                      child: Text(
-                        profile.username
-                            .substring(0, min(2, profile.username.length))
-                            .toUpperCase(),
-                        style: const TextStyle(
-                          color: Colors.black54,
-                          fontSize: 14,
-                          fontWeight: FontWeight.w600,
+                  GestureDetector(
+                    onTap: () {
+                      Navigator.of(
+                        context,
+                      ).push(UserProfilePage.route(profile.id));
+                    },
+                    child: Container(
+                      width: 40,
+                      height: 40,
+                      decoration: BoxDecoration(
+                        color: Colors.grey[200],
+                        shape: BoxShape.circle,
+                      ),
+                      child: Center(
+                        child: Text(
+                          profile.username
+                              .substring(0, min(2, profile.username.length))
+                              .toUpperCase(),
+                          style: const TextStyle(
+                            color: Colors.black54,
+                            fontSize: 14,
+                            fontWeight: FontWeight.w600,
+                          ),
                         ),
                       ),
                     ),
