@@ -33,6 +33,19 @@ class Message extends Equatable {
     );
   }
 
+  /// メッセージ内容を更新した新しいMessageインスタンスを作成
+  Message copyWithContent({required String content}) {
+    return Message(
+      id: id,
+      profileId: profileId,
+      content: content,
+      createdAt: createdAt,
+      isMine: isMine,
+      likeCount: likeCount,
+      isLikedByMe: isLikedByMe,
+    );
+  }
+
   @override
   List<Object?> get props => [
     id,

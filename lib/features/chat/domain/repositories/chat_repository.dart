@@ -14,4 +14,10 @@ abstract class ChatRepository {
 
   /// メッセージのいいねを切り替え
   ResultVoid toggleLike({required String messageId, required String userId});
+
+  /// メッセージを編集
+  ResultVoid editMessage({
+    required String messageId,
+    required String newContent,
+  });
 }

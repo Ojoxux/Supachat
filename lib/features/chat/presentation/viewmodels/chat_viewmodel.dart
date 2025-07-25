@@ -7,6 +7,7 @@ import '../../domain/usecases/send_message.dart';
 import '../../domain/usecases/get_messages.dart';
 import '../../domain/usecases/watch_messages.dart';
 import '../../domain/usecases/toggle_like.dart';
+import '../../domain/usecases/edit_message.dart';
 import '../../../profile/domain/usecases/get_profiles.dart';
 import '../../../profile/presentation/viewmodels/profile_viewmodel.dart';
 import 'chat_state.dart';
@@ -18,6 +19,7 @@ final chatViewModelProvider = StateNotifierProvider<ChatViewModel, ChatState>(
     getMessages: getIt<GetMessages>(),
     watchMessages: getIt<WatchMessages>(),
     toggleLike: getIt<ToggleLike>(),
+    editMessage: getIt<EditMessage>(),
     getProfiles: getIt<GetProfiles>(),
     ref: ref,
   ),
@@ -30,6 +32,7 @@ class ChatViewModel extends StateNotifier<ChatState> {
     required this.getMessages,
     required this.watchMessages,
     required this.toggleLike,
+    required this.editMessage,
     required this.getProfiles,
     required this.ref,
   }) : super(const ChatInitial());
@@ -38,6 +41,7 @@ class ChatViewModel extends StateNotifier<ChatState> {
   final GetMessages getMessages;
   final WatchMessages watchMessages;
   final ToggleLike toggleLike;
+  final EditMessage editMessage;
   final GetProfiles getProfiles;
   final Ref ref;
 
@@ -147,6 +151,52 @@ class ChatViewModel extends StateNotifier<ChatState> {
               isLikedByMe: !isCurrentlyLiked,
               likeCount: newLikeCount,
             );
+          }
+          return message;
+        }).toList();
+
+    state = ChatLoaded(updatedMessages);
+  }
+
+  /// メッセージを編集（楽観的更新付き）
+  Future<void> editMessageAction({
+    required String messageId,
+    required String newContent,
+  }) async {
+    if (newContent.trim().isEmpty) return;
+
+    // 楽観的更新: 即座にUIを更新
+    _updateMessageContentOptimistically(messageId, newContent.trim());
+
+    final result = await editMessage(
+      messageId: messageId,
+      newContent: newContent.trim(),
+    );
+
+    result.fold(
+      (failure) {
+        // エラーが発生した場合は元に戻す（リアルタイム更新で元の状態が復元される）
+        state = ChatError(
+          getErrorMessage(failure),
+          messages: _getCurrentMessages(),
+        );
+      },
+      (_) {
+        // 成功時は何もしない（リアルタイム更新で最終的な状態が反映される）
+      },
+    );
+  }
+
+  /// メッセージ内容を楽観的に更新
+  void _updateMessageContentOptimistically(
+    String messageId,
+    String newContent,
+  ) {
+    final currentMessages = _getCurrentMessages();
+    final updatedMessages =
+        currentMessages.map((message) {
+          if (message.id == messageId) {
+            return message.copyWithContent(content: newContent);
           }
           return message;
         }).toList();
